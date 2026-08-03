@@ -10,20 +10,19 @@ export interface CrTextImageElements extends Omit<CrSlideElements, 'body'> {
   main?: string
 }
 
-export const crTextImageDefaults: CrTextImageElements = {
-  eyebrow: 'MÉTODO 02',
-  title: 'REVISÃO ATIVA',
-  body: 'Feche o material após estudar e escreva tudo que lembrar. Esse método triplica a retenção em relação à releitura passiva.',
-  page: '03 / 05',
-}
-
 /** Espelha renderCarouselTextImage() do Gerador/index.html (linha 2541). */
-export function CrTextImageRender({ elements: el, dark }: TemplateRenderProps<CrTextImageElements>) {
+export function CrTextImageRender({
+  elements: el,
+  dark,
+}: TemplateRenderProps<CrTextImageElements>) {
   const onSlotClick = useSlotFilePicker()
   return (
     <>
       <div className="relative z-2 flex h-full flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-5.5" style={{ padding: '80px 50px 80px 80px' }}>
+        <div
+          className="flex flex-1 flex-col justify-center gap-5.5"
+          style={{ padding: '80px 50px 80px 80px' }}
+        >
           {el.eyebrow !== false && (
             <TEyebrow fontSize={22}>
               <EditableText path="eyebrow" value={el.eyebrow} />
@@ -38,7 +37,13 @@ export function CrTextImageRender({ elements: el, dark }: TemplateRenderProps<Cr
           </TBody>
         </div>
         <div className="relative w-[400px] shrink-0">
-          <TSlot slotId="main" imageUrl={el.main} onClick={onSlotClick} dark={dark} className="h-full w-full rounded-none" />
+          <TSlot
+            slotId="main"
+            imageUrl={el.main}
+            onClick={onSlotClick}
+            dark={dark}
+            className="h-full w-full rounded-none"
+          />
         </div>
       </div>
       <div className="absolute right-22.5 bottom-22.5 z-5">

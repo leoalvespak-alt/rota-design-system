@@ -11,17 +11,6 @@ export interface SqTableElements {
   rows: string[][]
 }
 
-export const sqTableDefaults: SqTableElements = {
-  title: 'COMPARE AS OPÇÕES',
-  cols: ['SEM PLANO', 'ROTA DE ATAQUE'],
-  rows: [
-    ['Plano aleatório', 'Plano Rota de Ataque'],
-    ['Sem foco definido', 'Meta diária clara'],
-    ['Revisão por sorte', 'Revisão ativa agendada'],
-    ['0 aprovados', '10.482 aprovados'],
-  ],
-}
-
 /**
  * Espelha renderTableSquare() do Gerador/index.html (linha 2422).
  * Corrige a auditoria items 1-2: as células usavam `data-field="th-${i}"`/`"td-${i}-${j}"`,
@@ -53,7 +42,9 @@ export function SqTableRender({ elements: el, dark }: TemplateRenderProps<SqTabl
               <th
                 key={i}
                 className="px-5 py-4 text-left font-heading text-[26px] font-bold tracking-[0.06em] text-white"
-                style={{ borderRight: i < cols.length - 1 ? '1px solid rgba(255,255,255,0.2)' : 'none' }}
+                style={{
+                  borderRight: i < cols.length - 1 ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                }}
               >
                 <EditableText path={`cols.${i}`} value={c} />
               </th>
@@ -62,7 +53,10 @@ export function SqTableRender({ elements: el, dark }: TemplateRenderProps<SqTabl
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={i} style={{ background: i % 2 === 0 ? 'var(--light-bg)' : 'var(--light-bg-alt)' }}>
+            <tr
+              key={i}
+              style={{ background: i % 2 === 0 ? 'var(--light-bg)' : 'var(--light-bg-alt)' }}
+            >
               {r.map((c, j) => (
                 <td
                   key={j}
@@ -96,11 +90,17 @@ export function SqTableControls({ elements: el }: TemplateControlsProps<SqTableE
   const tableAction = (action: 'addCol' | 'removeCol' | 'addRow' | 'removeRow') => {
     if (action === 'addCol') {
       setElementField(['cols'], [...cols, 'NOVA COLUNA'])
-      setElementField(['rows'], rows.map((r) => [...r, 'Novo item']))
+      setElementField(
+        ['rows'],
+        rows.map((r) => [...r, 'Novo item']),
+      )
     } else if (action === 'removeCol') {
       if (cols.length > 1) {
         setElementField(['cols'], cols.slice(0, -1))
-        setElementField(['rows'], rows.map((r) => r.slice(0, -1)))
+        setElementField(
+          ['rows'],
+          rows.map((r) => r.slice(0, -1)),
+        )
       }
     } else if (action === 'addRow') {
       setElementField(['rows'], [...rows, Array(cols.length).fill('Novo item')])
@@ -115,14 +115,22 @@ export function SqTableControls({ elements: el }: TemplateControlsProps<SqTableE
         <div className="mb-2.5 flex gap-2.5">
           <button
             className="flex-1 rounded-md border px-1.5 py-1.5 text-xs"
-            style={{ borderColor: 'var(--ui-border)', background: 'var(--ui-panel)', color: 'var(--ui-text)' }}
+            style={{
+              borderColor: 'var(--ui-border)',
+              background: 'var(--ui-panel)',
+              color: 'var(--ui-text)',
+            }}
             onClick={() => tableAction('addCol')}
           >
             + Coluna
           </button>
           <button
             className="flex-1 rounded-md border px-1.5 py-1.5 text-xs"
-            style={{ borderColor: 'var(--ui-border)', background: 'var(--ui-panel)', color: 'var(--ui-text)' }}
+            style={{
+              borderColor: 'var(--ui-border)',
+              background: 'var(--ui-panel)',
+              color: 'var(--ui-text)',
+            }}
             onClick={() => tableAction('removeCol')}
           >
             - Coluna
@@ -131,14 +139,22 @@ export function SqTableControls({ elements: el }: TemplateControlsProps<SqTableE
         <div className="flex gap-2.5">
           <button
             className="flex-1 rounded-md border px-1.5 py-1.5 text-xs"
-            style={{ borderColor: 'var(--ui-border)', background: 'var(--ui-panel)', color: 'var(--ui-text)' }}
+            style={{
+              borderColor: 'var(--ui-border)',
+              background: 'var(--ui-panel)',
+              color: 'var(--ui-text)',
+            }}
             onClick={() => tableAction('addRow')}
           >
             + Linha
           </button>
           <button
             className="flex-1 rounded-md border px-1.5 py-1.5 text-xs"
-            style={{ borderColor: 'var(--ui-border)', background: 'var(--ui-panel)', color: 'var(--ui-text)' }}
+            style={{
+              borderColor: 'var(--ui-border)',
+              background: 'var(--ui-panel)',
+              color: 'var(--ui-text)',
+            }}
             onClick={() => tableAction('removeRow')}
           >
             - Linha

@@ -28,3 +28,9 @@ tests/visual/baseline
 tests/visual/diff
 tests/visual/e2e
 tests/visual/*.png
+
+# Credenciais/config real de deploy — nunca commitar
+deploy/.env
+.env
+.env.local
+.env.*.local

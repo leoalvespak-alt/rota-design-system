@@ -17,19 +17,18 @@ export interface SqTextImageElements {
   main?: string
 }
 
-export const sqTextImageDefaults: SqTextImageElements = {
-  eyebrow: 'METODOLOGIA',
-  title: 'ESTUDE COM ESTRATÉGIA',
-  body: 'Cada hora de estudo deve ter um objetivo claro. Sem foco, não há aprovação. Defina sua meta diária e cumpra.',
-  redline: true,
-}
-
 /** Espelha renderTextImageSquare() do Gerador/index.html (linha 2125). */
-export function SqTextImageRender({ elements: el, dark }: TemplateRenderProps<SqTextImageElements>) {
+export function SqTextImageRender({
+  elements: el,
+  dark,
+}: TemplateRenderProps<SqTextImageElements>) {
   const onSlotClick = useSlotFilePicker()
   return (
     <div className="relative z-2 flex h-full flex-row">
-      <div className="flex flex-1 flex-col justify-center gap-6" style={{ padding: '80px 50px 80px 80px' }}>
+      <div
+        className="flex flex-1 flex-col justify-center gap-6"
+        style={{ padding: '80px 50px 80px 80px' }}
+      >
         {el.eyebrow !== false && (
           <TEyebrow fontSize={24}>
             <EditableText path="eyebrow" value={el.eyebrow} />
@@ -44,7 +43,13 @@ export function SqTextImageRender({ elements: el, dark }: TemplateRenderProps<Sq
         </TBody>
       </div>
       <div className="w-[420px] shrink-0">
-        <TSlot slotId="main" imageUrl={el.main} onClick={onSlotClick} dark={dark} className="h-full w-full rounded-none" />
+        <TSlot
+          slotId="main"
+          imageUrl={el.main}
+          onClick={onSlotClick}
+          dark={dark}
+          className="h-full w-full rounded-none"
+        />
       </div>
     </div>
   )

@@ -16,29 +16,20 @@ export interface SqCoverElements {
   bgImg?: string
 }
 
-export const sqCoverDefaults: SqCoverElements = {
-  eyebrow: 'CARREIRAS FISCAIS',
-  title: 'CONQUISTE SUA APROVAÇÃO',
-  subtitle: 'O plano está pronto. Agora é hora de executar.',
-  redline: true,
-}
-
 /** Espelha renderCoverSquare() do Gerador/index.html (linha 2106). */
 export function SqCoverRender({ elements: el, dark }: TemplateRenderProps<SqCoverElements>) {
   const hasImg = Boolean(el.bgImg)
   return (
     <div className="relative z-[3] flex h-full flex-col items-center justify-center gap-7 p-[90px] text-center">
       {hasImg && (
-        <img
-          src={el.bgImg}
-          alt=""
-          className="absolute inset-0 z-0 h-full w-full object-cover"
-        />
+        <img src={el.bgImg} alt="" className="absolute inset-0 z-0 h-full w-full object-cover" />
       )}
       {hasImg && (
         <div
           className="pointer-events-none absolute inset-0 z-[1]"
-          style={{ background: 'linear-gradient(to bottom,rgba(0,0,0,0.35) 0%,rgba(0,0,0,0.6) 100%)' }}
+          style={{
+            background: 'linear-gradient(to bottom,rgba(0,0,0,0.35) 0%,rgba(0,0,0,0.6) 100%)',
+          }}
         />
       )}
       {el.eyebrow !== false && (
@@ -56,7 +47,11 @@ export function SqCoverRender({ elements: el, dark }: TemplateRenderProps<SqCove
       {el.redline !== false && <TRedline className="relative z-[3]" />}
       {el.subtitle !== false && (
         <div className="relative z-[3]">
-          <TBody fontSize={36} dark={dark} colorOverride={hasImg ? 'rgba(255,255,255,0.85)' : undefined}>
+          <TBody
+            fontSize={36}
+            dark={dark}
+            colorOverride={hasImg ? 'rgba(255,255,255,0.85)' : undefined}
+          >
             <EditableText path="subtitle" value={el.subtitle} />
           </TBody>
         </div>

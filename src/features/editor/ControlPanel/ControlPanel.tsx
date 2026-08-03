@@ -5,6 +5,7 @@ import { WatermarkControls } from './WatermarkControls'
 import { BgLibraryControls } from './BgLibraryControls'
 import { AICopyControls } from './AICopyControls'
 import { AIImageControls } from './AIImageControls'
+import { QualityControls } from './QualityControls'
 
 /**
  * Espelha buildRightPanel() do Gerador/index.html original (linha 3305).
@@ -19,7 +20,7 @@ export function ControlPanel() {
 
   if (!tpl) {
     return (
-      <aside className="w-70 shrink-0 overflow-y-auto border-l border-ui-border bg-ui-panel">
+      <aside className="w-80 shrink-0 overflow-y-auto border-l border-ui-border bg-ui-panel">
         <div className="p-10 text-center text-[13px] text-ui-muted">
           Selecione um template
           <br />
@@ -30,8 +31,8 @@ export function ControlPanel() {
   }
 
   return (
-    <aside className="w-70 shrink-0 overflow-y-auto border-l border-ui-border bg-ui-panel">
-      <div className="border-b border-ui-border px-4 pt-4 pb-3.5">
+    <aside className="w-80 shrink-0 overflow-y-auto border-l border-ui-border bg-ui-panel">
+      <div className="sticky top-0 z-10 border-b border-ui-border bg-ui-panel px-4 pt-4 pb-3.5">
         <div className="text-[10px] font-semibold tracking-[0.1em] text-ui-muted uppercase">
           Editando: {tpl.name}
         </div>
@@ -42,6 +43,7 @@ export function ControlPanel() {
       <tpl.Controls elements={elements as never} />
       <AICopyControls />
       <AIImageControls />
+      <QualityControls />
       <TextureControls />
       <WatermarkControls />
       <BgLibraryControls />

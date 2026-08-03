@@ -10,13 +10,6 @@ export interface CrFactElements {
   page: string
 }
 
-export const crFactDefaults: CrFactElements = {
-  tag: 'DADO IMPORTANTE',
-  big: '70%',
-  label: 'das questões de concurso fiscal repetem tópicos de edições anteriores',
-  page: '03 / 06',
-}
-
 /** Espelha renderCarouselFact() do Gerador/index.html (linha 2584). */
 export function CrFactRender({ elements: el, dark }: TemplateRenderProps<CrFactElements>) {
   return (
@@ -26,7 +19,10 @@ export function CrFactRender({ elements: el, dark }: TemplateRenderProps<CrFactE
           <EditableText path="tag" value={el.tag} />
         </TTag>
       )}
-      <div className="font-mono text-[200px] leading-[0.9] font-bold" style={{ color: 'var(--red)' }}>
+      <div
+        className="font-mono text-[200px] leading-[0.9] font-bold"
+        style={{ color: 'var(--red)' }}
+      >
         <EditableText path="big" value={el.big} />
       </div>
       <TRedline width={80} />

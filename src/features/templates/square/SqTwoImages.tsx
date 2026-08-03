@@ -17,14 +17,11 @@ export interface SqTwoImagesElements {
   slot2?: string
 }
 
-export const sqTwoImagesDefaults: SqTwoImagesElements = {
-  eyebrow: 'COMPARATIVO',
-  title: 'ANTES vs DEPOIS',
-  body: 'Veja a diferença entre estudar sem método e estudar com a Rota de Ataque.',
-}
-
 /** Espelha renderTwoImagesSquare() do Gerador/index.html (linha 2197). */
-export function SqTwoImagesRender({ elements: el, dark }: TemplateRenderProps<SqTwoImagesElements>) {
+export function SqTwoImagesRender({
+  elements: el,
+  dark,
+}: TemplateRenderProps<SqTwoImagesElements>) {
   const onSlotClick = useSlotFilePicker()
   return (
     <div className="relative z-2 flex h-full flex-col gap-7 p-20">
@@ -39,8 +36,20 @@ export function SqTwoImagesRender({ elements: el, dark }: TemplateRenderProps<Sq
         <EditableText path="title" value={el.title} />
       </TTitle>
       <div className="flex flex-1 gap-5">
-        <TSlot slotId="slot1" imageUrl={el.slot1} onClick={onSlotClick} dark={dark} className="flex-1 rounded-xl" />
-        <TSlot slotId="slot2" imageUrl={el.slot2} onClick={onSlotClick} dark={dark} className="flex-1 rounded-xl" />
+        <TSlot
+          slotId="slot1"
+          imageUrl={el.slot1}
+          onClick={onSlotClick}
+          dark={dark}
+          className="flex-1 rounded-xl"
+        />
+        <TSlot
+          slotId="slot2"
+          imageUrl={el.slot2}
+          onClick={onSlotClick}
+          dark={dark}
+          className="flex-1 rounded-xl"
+        />
       </div>
       <TBody fontSize={30} dark={dark}>
         <EditableText path="body" value={el.body} />

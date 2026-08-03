@@ -10,17 +10,6 @@ export interface SqStatsElements {
   stats: StatItem[]
 }
 
-export const sqStatsDefaults: SqStatsElements = {
-  eyebrow: 'RESULTADOS',
-  title: 'APROVADOS EM 2024',
-  stats: [
-    { num: '94%', label: 'taxa de aprovação' },
-    { num: '38 dias', label: 'tempo médio' },
-    { num: '10.482', label: 'alunos ativos' },
-    { num: '24/7', label: 'suporte ativo' },
-  ],
-}
-
 /**
  * Espelha renderStatsSquare() do Gerador/index.html (linha 2356).
  * Corrige a auditoria items 1-2 (o bug mais grave): no HTML original, `s.num`/`s.label`
@@ -54,7 +43,10 @@ export function SqStatsRender({ elements: el, dark }: TemplateRenderProps<SqStat
             className="flex flex-col items-center justify-center gap-2 rounded-xl border p-7 px-5"
             style={{ background: 'var(--light-bg-alt)', borderColor: 'var(--light-border)' }}
           >
-            <div className="font-mono text-[64px] leading-none font-bold" style={{ color: 'var(--red)' }}>
+            <div
+              className="font-mono text-[64px] leading-none font-bold"
+              style={{ color: 'var(--red)' }}
+            >
               <EditableText path={`stats.${i}.num`} value={s.num} />
             </div>
             <TBody fontSize={24} dark={false} style={{ textAlign: 'center' }}>

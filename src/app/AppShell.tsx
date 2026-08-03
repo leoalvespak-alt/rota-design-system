@@ -14,6 +14,8 @@ import { BrandView } from '@/features/brand/BrandView'
 import { AIConfigView } from '@/features/ai/AIConfigView'
 import { RendersView } from '@/features/renders/RendersView'
 import { HistoryView } from '@/features/history/HistoryView'
+import { cn } from '@/lib/utils'
+import { CommandPalette } from '@/features/commands/CommandPalette'
 
 const TAB_ORDER: AppTab[] = ['create', 'brand', 'ai-config', 'renders', 'history']
 
@@ -21,6 +23,9 @@ const TAB_ORDER: AppTab[] = ['create', 'brand', 'ai-config', 'renders', 'history
 export function AppShell() {
   const activeTab = useUiStore((s) => s.activeTab)
   const setTab = useUiStore((s) => s.setTab)
+  const leftPanelOpen = useUiStore((s) => s.leftPanelOpen)
+  const rightPanelOpen = useUiStore((s) => s.rightPanelOpen)
+  const closePanels = useUiStore((s) => s.closePanels)
   const activeTemplateId = useEditorStore((s) => s.activeTemplateId)
   const selectTemplate = useEditorStore((s) => s.selectTemplate)
   const undo = () => useEditorStore.temporal.getState().undo()
@@ -87,6 +92,7 @@ export function AppShell() {
   return (
     <div className="flex h-screen flex-col">
       <AppHeader onDownload={downloadPNG} onSave={saveCurrentArt} />
+      <CommandPalette onTab={setTab} onSave={() => { void saveCurrentArt() }} onExport={() => { void downloadPNG() }} />
 
       <AnimatePresence mode="wait">
         {activeTab === 'create' && (
@@ -96,14 +102,41 @@ export function AppShell() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="flex flex-1 overflow-hidden"
+            className="relative flex flex-1 overflow-hidden"
           >
-            <Gallery />
-            <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="hidden xl:flex">
+              <Gallery />
+            </div>
+            {(leftPanelOpen || rightPanelOpen) && (
+              <button
+                aria-label="Fechar painéis"
+                className="fixed inset-0 z-30 bg-black/60 xl:hidden"
+                onClick={closePanels}
+              />
+            )}
+            <div
+              className={cn(
+                'fixed top-[96px] bottom-0 left-0 z-40 flex max-w-[88vw] shadow-2xl transition-transform duration-200 md:top-13 xl:hidden',
+                leftPanelOpen ? 'translate-x-0' : '-translate-x-full',
+              )}
+            >
+              <Gallery />
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               <SeriesBar />
               <Canvas />
             </div>
-            <ControlPanel />
+            <div className="hidden xl:flex">
+              <ControlPanel />
+            </div>
+            <div
+              className={cn(
+                'fixed top-[96px] right-0 bottom-0 z-40 flex max-w-[88vw] shadow-2xl transition-transform duration-200 md:top-13 xl:hidden',
+                rightPanelOpen ? 'translate-x-0' : 'translate-x-full',
+              )}
+            >
+              <ControlPanel />
+            </div>
           </motion.div>
         )}
         {activeTab === 'brand' && (

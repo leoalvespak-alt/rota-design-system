@@ -13,19 +13,24 @@ export interface CrCtaElements {
   page: string
 }
 
-export const crCtaDefaults: CrCtaElements = {
-  title: 'COMECE AGORA',
-  body: 'Acesse a plataforma Rota de Ataque e receba seu cronograma personalizado hoje mesmo.',
-  cta: 'ACESSAR AGORA',
-  page: '05 / 05',
-}
-
 /** Espelha renderCarouselCTA() do Gerador/index.html (linha 2309). */
 export function CrCtaRender({ elements: el, dark }: TemplateRenderProps<CrCtaElements>) {
   return (
     <div className="relative z-2 flex h-full flex-col items-center justify-center gap-9 p-22.5 text-center">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full" style={{ background: 'var(--red)' }}>
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <div
+        className="flex h-20 w-20 items-center justify-center rounded-full"
+        style={{ background: 'var(--red)' }}
+      >
+        <svg
+          width="40"
+          height="40"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <polyline points="9 18 15 12 9 6" />
         </svg>
       </div>

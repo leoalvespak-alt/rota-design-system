@@ -1,36 +1,68 @@
 import type { TemplateDefinition } from './types'
 
 // ---- SQUARE (12) ----
-import { SqCoverRender, SqCoverControls, sqCoverDefaults } from './square/SqCover'
-import { SqTextImageRender, SqTextImageControls, sqTextImageDefaults } from './square/SqTextImage'
-import { SqContentRender, SqContentControls, sqContentDefaults } from './square/SqContent'
-import { SqQuoteRender, SqQuoteControls, sqQuoteDefaults } from './square/SqQuote'
-import { SqTipRender, SqTipControls, sqTipDefaults } from './square/SqTip'
-import { SqTwoImagesRender, SqTwoImagesControls, sqTwoImagesDefaults } from './square/SqTwoImages'
-import { SqStepsRender, SqStepsControls, sqStepsDefaults } from './square/SqSteps'
-import { SqStatsRender, SqStatsControls, sqStatsDefaults } from './square/SqStats'
-import { SqProfileRender, SqProfileControls, sqProfileDefaults } from './square/SqProfile'
-import { SqTweetRender, SqTweetControls, sqTweetDefaults } from './square/SqTweet'
-import { SqTableRender, SqTableControls, sqTableDefaults } from './square/SqTable'
-import { SqChecklistRender, SqChecklistControls, sqChecklistDefaults } from './square/SqChecklist'
+import { SqCoverRender, SqCoverControls } from './square/SqCover'
+import { SqTextImageRender, SqTextImageControls } from './square/SqTextImage'
+import { SqContentRender, SqContentControls } from './square/SqContent'
+import { SqQuoteRender, SqQuoteControls } from './square/SqQuote'
+import { SqTipRender, SqTipControls } from './square/SqTip'
+import { SqTwoImagesRender, SqTwoImagesControls } from './square/SqTwoImages'
+import { SqStepsRender, SqStepsControls } from './square/SqSteps'
+import { SqStatsRender, SqStatsControls } from './square/SqStats'
+import { SqProfileRender, SqProfileControls } from './square/SqProfile'
+import { SqTweetRender, SqTweetControls } from './square/SqTweet'
+import { SqTableRender, SqTableControls } from './square/SqTable'
+import { SqChecklistRender, SqChecklistControls } from './square/SqChecklist'
+import {
+  sqChecklistDefaults,
+  sqContentDefaults,
+  sqCoverDefaults,
+  sqProfileDefaults,
+  sqQuoteDefaults,
+  sqStatsDefaults,
+  sqStepsDefaults,
+  sqTableDefaults,
+  sqTextImageDefaults,
+  sqTipDefaults,
+  sqTweetDefaults,
+  sqTwoImagesDefaults,
+} from './square/defaults'
 
 // ---- PORTRAIT (6) ----
-import { PtCoverRender, PtCoverControls, ptCoverDefaults } from './portrait/PtCover'
-import { PtContentRender, PtContentControls, ptContentDefaults } from './portrait/PtContent'
-import { PtImageRender, PtImageControls, ptImageDefaults } from './portrait/PtImage'
-import { PtQuoteRender, PtQuoteControls, ptQuoteDefaults } from './portrait/PtQuote'
-import { PtListRender, PtListControls, ptListDefaults } from './portrait/PtList'
-import { PtCtaRender, PtCtaControls, ptCtaDefaults } from './portrait/PtCta'
+import { PtCoverRender, PtCoverControls } from './portrait/PtCover'
+import { PtContentRender, PtContentControls } from './portrait/PtContent'
+import { PtImageRender, PtImageControls } from './portrait/PtImage'
+import { PtQuoteRender, PtQuoteControls } from './portrait/PtQuote'
+import { PtListRender, PtListControls } from './portrait/PtList'
+import { PtCtaRender, PtCtaControls } from './portrait/PtCta'
+import {
+  ptContentDefaults,
+  ptCoverDefaults,
+  ptCtaDefaults,
+  ptImageDefaults,
+  ptListDefaults,
+  ptQuoteDefaults,
+} from './portrait/defaults'
 
 // ---- CAROUSEL (8) ----
-import { CrCoverRender, CrCoverControls, crCoverDefaults } from './carousel/CrCover'
-import { CrCoverDarkRender, CrCoverDarkControls, crCoverDarkDefaults } from './carousel/CrCoverDark'
-import { CrSlideRender, CrSlideControls, crSlideDefaults } from './carousel/CrSlide'
-import { CrTextImageRender, CrTextImageControls, crTextImageDefaults } from './carousel/CrTextImage'
-import { CrListRender, CrListControls, crListDefaults } from './carousel/CrList'
-import { CrFactRender, CrFactControls, crFactDefaults } from './carousel/CrFact'
-import { CrComparisonRender, CrComparisonControls, crComparisonDefaults } from './carousel/CrComparison'
-import { CrCtaRender, CrCtaControls, crCtaDefaults } from './carousel/CrCta'
+import { CrCoverRender, CrCoverControls } from './carousel/CrCover'
+import { CrCoverDarkRender, CrCoverDarkControls } from './carousel/CrCoverDark'
+import { CrSlideRender, CrSlideControls } from './carousel/CrSlide'
+import { CrTextImageRender, CrTextImageControls } from './carousel/CrTextImage'
+import { CrListRender, CrListControls } from './carousel/CrList'
+import { CrFactRender, CrFactControls } from './carousel/CrFact'
+import { CrComparisonRender, CrComparisonControls } from './carousel/CrComparison'
+import { CrCtaRender, CrCtaControls } from './carousel/CrCta'
+import {
+  crComparisonDefaults,
+  crCoverDarkDefaults,
+  crCoverDefaults,
+  crCtaDefaults,
+  crFactDefaults,
+  crListDefaults,
+  crSlideDefaults,
+  crTextImageDefaults,
+} from './carousel/defaults'
 
 /**
  * Espelha o array TEMPLATES do Gerador/index.html original (linhas 2013-2043).
@@ -52,6 +84,14 @@ export const TEMPLATES: TemplateDefinition<never>[] = [
     defaults: sqCoverDefaults,
     Render: SqCoverRender,
     Controls: SqCoverControls,
+    fieldSchema: { fields: [
+      { name: 'eyebrow', semantic: 'eyebrow', type: 'text', required: false, maxLength: 36, bindable: true },
+      { name: 'title', semantic: 'title', type: 'text', required: true, maxLength: 90, bindable: true },
+      { name: 'subtitle', semantic: 'subtitle', type: 'text', required: false, maxLength: 160, bindable: true },
+      { name: 'redline', semantic: 'highlight', type: 'boolean', required: false, bindable: false },
+    ] },
+    capabilities: { image: false, cta: false, list: false, resize: true, styles: ['title', 'subtitle', 'eyebrow', 'highlight'] },
+    variants: [{ id: 'default', label: 'Padrão', density: 'medium', hasImage: false, ctaPosition: 'none' }],
   },
   {
     id: 'sq-text-image',
@@ -185,6 +225,13 @@ export const TEMPLATES: TemplateDefinition<never>[] = [
     defaults: ptCoverDefaults,
     Render: PtCoverRender,
     Controls: PtCoverControls,
+    fieldSchema: { fields: [
+      { name: 'eyebrow', semantic: 'eyebrow', type: 'text', required: false, maxLength: 36, bindable: true },
+      { name: 'title', semantic: 'title', type: 'text', required: true, maxLength: 90, bindable: true },
+      { name: 'subtitle', semantic: 'subtitle', type: 'text', required: false, maxLength: 160, bindable: true },
+    ] },
+    capabilities: { image: false, cta: false, list: false, resize: true, styles: ['title', 'subtitle', 'eyebrow'] },
+    variants: [{ id: 'default', label: 'Padrão', density: 'medium', hasImage: false, ctaPosition: 'none' }],
   },
   {
     id: 'pt-content',
@@ -252,6 +299,14 @@ export const TEMPLATES: TemplateDefinition<never>[] = [
     defaults: crCoverDefaults,
     Render: CrCoverRender,
     Controls: CrCoverControls,
+    fieldSchema: { fields: [
+      { name: 'eyebrow', semantic: 'eyebrow', type: 'text', required: false, maxLength: 36, bindable: true },
+      { name: 'title', semantic: 'title', type: 'text', required: true, maxLength: 90, bindable: true },
+      { name: 'subtitle', semantic: 'subtitle', type: 'text', required: false, maxLength: 160, bindable: true },
+      { name: 'page', semantic: 'numbering', type: 'text', required: true, maxLength: 12, bindable: false },
+    ] },
+    capabilities: { image: false, cta: false, list: false, resize: true, styles: ['title', 'subtitle', 'eyebrow', 'caption'] },
+    variants: [{ id: 'default', label: 'Padrão', density: 'medium', hasImage: false, ctaPosition: 'none' }],
   },
   {
     id: 'cr-cover-dark',

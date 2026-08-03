@@ -37,20 +37,26 @@ export function Gallery() {
   const categories = [...new Set(filtered.map((t) => t.category))]
 
   return (
-    <aside className="flex w-65 shrink-0 flex-col overflow-hidden border-r border-ui-border bg-ui-panel">
-      <div className="grid grid-cols-2 gap-1.5 border-b border-ui-border p-3">
-        {FORMAT_FILTERS.map((f) => (
-          <FilterButton key={f.id} active={galleryFilter === f.id} onClick={() => setGalleryFilter(f.id)}>
-            {f.label}
-          </FilterButton>
-        ))}
+    <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-r border-ui-border bg-ui-panel">
+      <div className="border-b border-ui-border p-3">
+        <div className="mb-2 text-[10px] font-semibold tracking-[0.1em] text-ui-muted uppercase">Formato</div>
+        <div className="grid grid-cols-2 gap-1.5">
+          {FORMAT_FILTERS.map((f) => (
+            <FilterButton key={f.id} active={galleryFilter === f.id} onClick={() => setGalleryFilter(f.id)}>
+              {f.label}
+            </FilterButton>
+          ))}
+        </div>
       </div>
-      <div className="grid grid-cols-2 gap-1.5 border-b border-ui-border p-3">
-        {TAG_FILTERS.map((f) => (
-          <FilterButton key={f.id} active={galleryFilter === f.id} onClick={() => setGalleryFilter(f.id)}>
-            {f.label}
-          </FilterButton>
-        ))}
+      <div className="border-b border-ui-border p-3">
+        <div className="mb-2 text-[10px] font-semibold tracking-[0.1em] text-ui-muted uppercase">Segmento</div>
+        <div className="grid grid-cols-2 gap-1.5">
+          {TAG_FILTERS.map((f) => (
+            <FilterButton key={f.id} active={galleryFilter === f.id} onClick={() => setGalleryFilter(f.id)}>
+              {f.label}
+            </FilterButton>
+          ))}
+        </div>
       </div>
       <div className="flex-1 overflow-y-auto p-2">
         {filtered.length === 0 && (

@@ -9,17 +9,6 @@ export interface SqStepsElements {
   steps: string[]
 }
 
-export const sqStepsDefaults: SqStepsElements = {
-  eyebrow: 'PASSO A PASSO',
-  title: 'DOMINE O CRONOGRAMA',
-  steps: [
-    'Defina as matérias prioritárias da semana',
-    'Divida em blocos de estudo de 2h',
-    'Revise ativamente ao final de cada dia',
-    'Execute a prova simulada no fim de semana',
-  ],
-}
-
 /** Espelha renderStepsSquare() do Gerador/index.html (linha 2334). */
 export function SqStepsRender({ elements: el, dark }: TemplateRenderProps<SqStepsElements>) {
   const steps = Array.isArray(el.steps) ? el.steps : ['Passo 1', 'Passo 2', 'Passo 3', 'Passo 4']

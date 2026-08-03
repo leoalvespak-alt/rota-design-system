@@ -11,16 +11,13 @@ export interface PtContentElements {
   body: string
 }
 
-export const ptContentDefaults: PtContentElements = {
-  eyebrow: 'CONTEÚDO',
-  title: 'DIREITO ADMINISTRATIVO',
-  body: 'Os atos administrativos são a base de qualquer prova de carreira fiscal. Domine este tópico e avance com confiança.',
-}
-
 /** Espelha renderContentPortrait() do Gerador/index.html (linha 2236). */
 export function PtContentRender({ elements: el, dark }: TemplateRenderProps<PtContentElements>) {
   return (
-    <div className="relative z-[2] flex h-full flex-col justify-center gap-[38px]" style={{ padding: '110px 90px' }}>
+    <div
+      className="relative z-[2] flex h-full flex-col justify-center gap-[38px]"
+      style={{ padding: '110px 90px' }}
+    >
       {el.eyebrow !== false && (
         <TEyebrow fontSize={30}>
           <EditableText path="eyebrow" value={el.eyebrow} />

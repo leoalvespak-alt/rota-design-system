@@ -10,16 +10,13 @@ export interface PtQuoteElements {
   bgImg?: string
 }
 
-export const ptQuoteDefaults: PtQuoteElements = {
-  quote: '"A procrastinação não é falta de tempo. É falta de decisão."',
-  author: 'Rota de Ataque',
-  sub: 'Execute o plano hoje.',
-}
-
 /** Espelha renderQuotePortrait() do Gerador/index.html (linha 2468). */
 export function PtQuoteRender({ elements: el, dark }: TemplateRenderProps<PtQuoteElements>) {
   return (
-    <div className="relative z-2 flex h-full flex-col items-center justify-center gap-10 text-center" style={{ padding: '110px 90px' }}>
+    <div
+      className="relative z-2 flex h-full flex-col items-center justify-center gap-10 text-center"
+      style={{ padding: '110px 90px' }}
+    >
       <div
         style={{
           fontFamily: "'Rajdhani', sans-serif",

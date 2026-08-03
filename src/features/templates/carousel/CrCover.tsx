@@ -17,13 +17,6 @@ export interface CrCoverElements {
   bgImg?: string
 }
 
-export const crCoverDefaults: CrCoverElements = {
-  eyebrow: 'GUIA COMPLETO',
-  title: '5 TÉCNICAS PARA ESTUDAR MAIS EM MENOS TEMPO',
-  subtitle: 'Deslize para ver cada técnica →',
-  page: '01 / 05',
-}
-
 /** Espelha renderCarouselCover() do Gerador/index.html (linha 2269). */
 export function CrCoverRender({ elements: el, dark }: TemplateRenderProps<CrCoverElements>) {
   const hasImg = Boolean(el.bgImg)
@@ -34,7 +27,10 @@ export function CrCoverRender({ elements: el, dark }: TemplateRenderProps<CrCove
           <img src={el.bgImg} alt="" className="absolute inset-0 z-0 h-full w-full object-cover" />
         )}
         {hasImg && (
-          <div className="pointer-events-none absolute inset-0 z-1" style={{ background: 'rgba(0,0,0,0.55)' }} />
+          <div
+            className="pointer-events-none absolute inset-0 z-1"
+            style={{ background: 'rgba(0,0,0,0.55)' }}
+          />
         )}
         {el.eyebrow !== false && (
           <div className="relative z-3">
@@ -51,7 +47,11 @@ export function CrCoverRender({ elements: el, dark }: TemplateRenderProps<CrCove
         <TRedline className="relative z-3" />
         {el.subtitle !== false && (
           <div className="relative z-3">
-            <TBody fontSize={34} dark={dark} colorOverride={hasImg ? 'rgba(255,255,255,0.8)' : undefined}>
+            <TBody
+              fontSize={34}
+              dark={dark}
+              colorOverride={hasImg ? 'rgba(255,255,255,0.8)' : undefined}
+            >
               <EditableText path="subtitle" value={el.subtitle} />
             </TBody>
           </div>

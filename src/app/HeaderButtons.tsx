@@ -19,7 +19,7 @@ export function HeaderPrimaryButton({ className, disabled, ...props }: MotionBut
       transition={{ type: 'spring', stiffness: 400, damping: 17 }}
       disabled={disabled}
       className={cn(
-        'inline-flex items-center gap-2 rounded-lg bg-brand-red px-5 py-2 font-heading text-sm font-bold tracking-wide text-white uppercase transition-colors hover:bg-brand-red-hover active:bg-brand-red-pressed disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-brand-red px-3.5 font-heading text-sm font-bold tracking-wide whitespace-nowrap text-white uppercase transition-colors hover:bg-brand-red-hover active:bg-brand-red-pressed disabled:cursor-not-allowed disabled:opacity-40',
         className,
       )}
       {...props}
@@ -41,7 +41,7 @@ export function HeaderSecondaryButton({
       transition={{ type: 'spring', stiffness: 400, damping: 17 }}
       disabled={disabled}
       className={cn(
-        'inline-flex items-center gap-2 rounded-lg border border-ui-border bg-ui-panel2 px-4 py-1.5 text-[13px] text-ui-text transition-colors hover:border-brand-red hover:text-brand-red disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-ui-border bg-ui-panel2 px-3 text-[13px] whitespace-nowrap text-ui-text transition-colors hover:border-brand-red hover:text-brand-red disabled:cursor-not-allowed disabled:opacity-40',
         active && 'border-brand-red text-brand-red',
         className,
       )}

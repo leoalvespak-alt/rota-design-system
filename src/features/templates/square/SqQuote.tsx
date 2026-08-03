@@ -10,11 +10,6 @@ export interface SqQuoteElements {
   author: Hideable<string>
 }
 
-export const sqQuoteDefaults: SqQuoteElements = {
-  quote: '"A aprovação não é sorte. É a soma de cada sessão de estudo que você não pulou."',
-  author: 'Rota de Ataque',
-}
-
 /** Espelha renderQuoteSquare() do Gerador/index.html (linha 2156). */
 export function SqQuoteRender({ elements: el, dark }: TemplateRenderProps<SqQuoteElements>) {
   return (

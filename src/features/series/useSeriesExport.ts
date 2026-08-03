@@ -6,7 +6,7 @@ import { useSeriesStore } from '@/stores/useSeriesStore'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { useDecorStore } from '@/stores/useDecorStore'
 import { captureNodeAsPNG, waitForRenderReady } from '@/lib/export/ExportEngine'
-import { ExportNodeRefContext } from '@/lib/export/ExportNodeProvider'
+import { ExportNodeRefContext } from '@/lib/export/ExportNodeRefContext'
 
 /**
  * Espelha exportSeriesZIP() do Gerador/index.html original (linha 3834).

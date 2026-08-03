@@ -4,7 +4,7 @@ import { useEditorStore } from '@/stores/useEditorStore'
 import { useDecorStore } from '@/stores/useDecorStore'
 import { useLibraryStore } from '@/stores/useLibraryStore'
 import { captureNodeAsPNG, waitForRenderReady } from '@/lib/export/ExportEngine'
-import { ExportNodeRefContext } from '@/lib/export/ExportNodeProvider'
+import { ExportNodeRefContext } from '@/lib/export/ExportNodeRefContext'
 
 /**
  * Espelha saveCurrentArt() do Gerador/index.html original (linha 3699).

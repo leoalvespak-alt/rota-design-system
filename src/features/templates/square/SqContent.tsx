@@ -12,13 +12,6 @@ export interface SqContentElements {
   redline: Hideable<boolean>
 }
 
-export const sqContentDefaults: SqContentElements = {
-  eyebrow: 'DICA',
-  title: 'TÉCNICA ATIVA DE REVISÃO',
-  body: 'Após estudar cada tópico, feche o material e escreva tudo que você lembra. Esse simples exercício aumenta a retenção em até 70%.\n\nFaça isso todos os dias. Sem exceção.',
-  redline: true,
-}
-
 /** Espelha renderContentSquare() do Gerador/index.html (linha 2143). */
 export function SqContentRender({ elements: el, dark }: TemplateRenderProps<SqContentElements>) {
   return (

@@ -13,13 +13,6 @@ export interface CrSlideElements {
   page: string
 }
 
-export const crSlideDefaults: CrSlideElements = {
-  eyebrow: 'TÉCNICA 01',
-  title: 'BLOCO POMODORO',
-  body: 'Estude por 25 minutos ininterruptos e descanse 5 minutos. Após 4 blocos, tire uma pausa longa de 20 minutos.\n\nSeu cérebro vai absorver mais com menos cansaço.',
-  page: '02 / 05',
-}
-
 /** Espelha renderCarouselSlide() do Gerador/index.html (linha 2291). */
 export function CrSlideRender({ elements: el, dark }: TemplateRenderProps<CrSlideElements>) {
   return (

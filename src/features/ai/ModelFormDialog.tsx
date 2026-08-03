@@ -1,9 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAIStore, type AIModel, type AIProviderKind } from '@/stores/useAIStore'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { HeaderPrimaryButton, HeaderSecondaryButton } from '@/app/HeaderButtons'
 
 const DEFAULT_URLS: Record<AIProviderKind, string> = {
@@ -28,38 +40,37 @@ export function ModelFormDialog({
   onClose: () => void
 }) {
   const models = useAIStore((s) => s.models)
+  const editing = editingId ? models.find((m) => m.id === editingId) : null
+
+  return (
+    <ModelForm
+      key={editingId ?? 'closed'}
+      editing={editing}
+      isOpen={editingId !== null}
+      onClose={onClose}
+    />
+  )
+}
+
+function ModelForm({
+  editing,
+  isOpen,
+  onClose,
+}: {
+  editing: AIModel | null | undefined
+  isOpen: boolean
+  onClose: () => void
+}) {
   const addModel = useAIStore((s) => s.addModel)
   const updateModel = useAIStore((s) => s.updateModel)
 
-  const editing = editingId ? models.find((m) => m.id === editingId) : null
-  const isOpen = editingId !== null || editingId === 'new'
-
-  const [label, setLabel] = useState('')
-  const [provider, setProvider] = useState<AIProviderKind>('deepseek')
-  const [model, setModel] = useState('')
-  const [baseUrl, setBaseUrl] = useState(DEFAULT_URLS.deepseek)
-  const [keyRef, setKeyRef] = useState<AIModel['keyRef']>('deepseekKey')
-  const [customKey, setCustomKey] = useState('')
+  const [label, setLabel] = useState(editing?.label ?? '')
+  const [provider, setProvider] = useState<AIProviderKind>(editing?.provider ?? 'deepseek')
+  const [model, setModel] = useState(editing?.model ?? '')
+  const [baseUrl, setBaseUrl] = useState(editing?.baseUrl ?? DEFAULT_URLS.deepseek)
+  const [keyRef, setKeyRef] = useState<AIModel['keyRef']>(editing?.keyRef ?? 'deepseekKey')
+  const [customKey, setCustomKey] = useState(editing?.customKey ?? '')
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    if (editing) {
-      setLabel(editing.label)
-      setProvider(editing.provider)
-      setModel(editing.model)
-      setBaseUrl(editing.baseUrl)
-      setKeyRef(editing.keyRef)
-      setCustomKey(editing.customKey ?? '')
-    } else {
-      setLabel('')
-      setProvider('deepseek')
-      setModel('')
-      setBaseUrl(DEFAULT_URLS.deepseek)
-      setKeyRef('deepseekKey')
-      setCustomKey('')
-    }
-    setError('')
-  }, [editingId, editing])
 
   const handleProviderChange = (v: AIProviderKind) => {
     setProvider(v)
@@ -72,7 +83,8 @@ export function ModelFormDialog({
     if (!label.trim()) return setError('Nome de exibição obrigatório.')
     if (!model.trim()) return setError('String do modelo obrigatória.')
 
-    const resolvedUrl = baseUrl.trim() || DEFAULT_URLS[provider === 'claude' ? 'claude' : 'deepseek']
+    const resolvedUrl =
+      baseUrl.trim() || DEFAULT_URLS[provider === 'claude' ? 'claude' : 'deepseek']
 
     const payload = {
       label: label.trim(),
@@ -100,16 +112,25 @@ export function ModelFormDialog({
         <div className="flex flex-col gap-4">
           <div>
             <Label className="mb-1.5 block">Nome de exibição</Label>
-            <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Ex: DeepSeek R2 — Rápido" />
+            <Input
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder="Ex: DeepSeek R2 — Rápido"
+            />
           </div>
           <div>
             <Label className="mb-1.5 block">Formato da API</Label>
-            <Select value={provider} onValueChange={(v) => handleProviderChange(v as AIProviderKind)}>
+            <Select
+              value={provider}
+              onValueChange={(v) => handleProviderChange(v as AIProviderKind)}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="deepseek">OpenAI-compat (DeepSeek, Groq, Together, etc.)</SelectItem>
+                <SelectItem value="deepseek">
+                  OpenAI-compat (DeepSeek, Groq, Together, etc.)
+                </SelectItem>
                 <SelectItem value="openai-compat">OpenAI-compat (URL customizada)</SelectItem>
                 <SelectItem value="claude">Anthropic Messages API</SelectItem>
               </SelectContent>

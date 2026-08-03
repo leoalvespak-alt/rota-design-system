@@ -10,19 +10,15 @@ export interface CrComparisonElements {
   page: string
 }
 
-export const crComparisonDefaults: CrComparisonElements = {
-  title: 'ANTES vs DEPOIS',
-  left: ['Estuda sem foco', 'Pula matérias difíceis', 'Sem revisão programada', '0 aprovações'],
-  right: ['Plano diário definido', 'Ataca os pontos cegos', 'Revisão ativa agendada', '10.482 aprovados'],
-  page: '02 / 06',
-}
-
 /**
  * Espelha renderCarouselComparison() do Gerador/index.html (linha 2600).
  * Corrige a auditoria items 1-2: as células usavam `data-field="l${i}"`/`"r${i}"`,
  * chaves soltas que nenhum lugar lia de volta. Aqui o path aponta para `left.${i}`/`right.${i}`.
  */
-export function CrComparisonRender({ elements: el, dark }: TemplateRenderProps<CrComparisonElements>) {
+export function CrComparisonRender({
+  elements: el,
+  dark,
+}: TemplateRenderProps<CrComparisonElements>) {
   const left = Array.isArray(el.left) ? el.left : ['Item negativo 1', 'Item negativo 2']
   const right = Array.isArray(el.right) ? el.right : ['Item positivo 1', 'Item positivo 2']
 
@@ -44,7 +40,11 @@ export function CrComparisonRender({ elements: el, dark }: TemplateRenderProps<C
               <div
                 key={i}
                 className="flex gap-2.5 py-2.5 text-2xl"
-                style={{ fontFamily: "'IBM Plex Sans', sans-serif", color: 'var(--light-muted)', borderBottom: '1px solid var(--light-border)' }}
+                style={{
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  color: 'var(--light-muted)',
+                  borderBottom: '1px solid var(--light-border)',
+                }}
               >
                 <span className="font-bold text-[#EF4444]">✕</span>
                 <span>
@@ -66,7 +66,11 @@ export function CrComparisonRender({ elements: el, dark }: TemplateRenderProps<C
               <div
                 key={i}
                 className="flex gap-2.5 py-2.5 text-2xl"
-                style={{ fontFamily: "'IBM Plex Sans', sans-serif", color: 'var(--light-text)', borderBottom: '1px solid var(--light-border)' }}
+                style={{
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  color: 'var(--light-text)',
+                  borderBottom: '1px solid var(--light-border)',
+                }}
               >
                 <span className="font-bold text-[#22C55E]">✓</span>
                 <span>

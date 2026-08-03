@@ -6,19 +6,19 @@ import { SqTextImageControls, type SqTextImageElements } from '../square/SqTextI
 
 export type PtImageElements = Omit<SqTextImageElements, 'redline'>
 
-export const ptImageDefaults: PtImageElements = {
-  eyebrow: 'CONCURSO',
-  title: 'RECEITA FEDERAL 2025',
-  body: 'Vagas abertas. Salário inicial de R$ 21.029. Inscrições abertas até 15/08.',
-}
-
 /** Espelha renderImagePortrait() do Gerador/index.html (linha 2249). */
 export function PtImageRender({ elements: el, dark }: TemplateRenderProps<PtImageElements>) {
   const onSlotClick = useSlotFilePicker()
   return (
     <div className="relative z-2 flex h-full flex-col">
       <div className="basis-[55%]">
-        <TSlot slotId="main" imageUrl={el.main} onClick={onSlotClick} dark={dark} className="h-full w-full rounded-none" />
+        <TSlot
+          slotId="main"
+          imageUrl={el.main}
+          onClick={onSlotClick}
+          dark={dark}
+          className="h-full w-full rounded-none"
+        />
       </div>
       <div className="flex flex-1 flex-col justify-center gap-7" style={{ padding: '70px 90px' }}>
         {el.eyebrow !== false && (

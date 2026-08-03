@@ -12,19 +12,20 @@ export interface SqProfileElements {
   avatar?: string
 }
 
-export const sqProfileDefaults: SqProfileElements = {
-  name: 'CARLOS AUGUSTO',
-  role: 'Aprovado — Receita Federal 2024',
-  quote: '"Em 5 meses com a Rota de Ataque eu saí de zero e passei em 1º lugar. O método é cirúrgico."',
-}
-
 /** Espelha renderProfileSquare() do Gerador/index.html (linha 2374). */
 export function SqProfileRender({ elements: el, dark }: TemplateRenderProps<SqProfileElements>) {
   const onSlotClick = useSlotFilePicker()
   return (
     <div className="relative z-2 flex h-full flex-col justify-center gap-8 p-22.5">
       <div className="flex items-center gap-5">
-        <TSlot slotId="avatar" imageUrl={el.avatar} onClick={onSlotClick} dark={dark} label="FOTO" className="h-20 w-20 shrink-0 rounded-full" />
+        <TSlot
+          slotId="avatar"
+          imageUrl={el.avatar}
+          onClick={onSlotClick}
+          dark={dark}
+          label="FOTO"
+          className="h-20 w-20 shrink-0 rounded-full"
+        />
         <div>
           <TTitle fontSize={38} dark={dark}>
             <EditableText path="name" value={el.name} />
@@ -38,7 +39,16 @@ export function SqProfileRender({ elements: el, dark }: TemplateRenderProps<SqPr
       {/* Nota de fidelidade: o HTML original também hardcodeia var(--light-text) aqui
           sem regra de dark mode (renderProfileSquare, linha 2389) — mesma inconsistência
           replicada, não introduzida pela migração. */}
-      <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 38, fontWeight: 300, color: 'var(--light-text)', lineHeight: 1.5, fontStyle: 'italic' }}>
+      <div
+        style={{
+          fontFamily: "'IBM Plex Sans', sans-serif",
+          fontSize: 38,
+          fontWeight: 300,
+          color: 'var(--light-text)',
+          lineHeight: 1.5,
+          fontStyle: 'italic',
+        }}
+      >
         <EditableText path="quote" value={el.quote} />
       </div>
       <div className="flex items-center gap-3">

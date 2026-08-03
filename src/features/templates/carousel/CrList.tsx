@@ -10,18 +10,6 @@ export interface CrListElements {
   page: string
 }
 
-export const crListDefaults: CrListElements = {
-  eyebrow: 'ROTINA VENCEDORA',
-  title: '4 AÇÕES DIÁRIAS',
-  steps: [
-    'Estudar em blocos sem celular',
-    'Resolver questões comentadas',
-    'Fazer revisão ativa noturna',
-    'Registrar erros e revisar no dia seguinte',
-  ],
-  page: '04 / 05',
-}
-
 /** Espelha renderCarouselList() do Gerador/index.html (linha 2562). */
 export function CrListRender({ elements: el, dark }: TemplateRenderProps<CrListElements>) {
   const steps = Array.isArray(el.steps) ? el.steps : ['Passo 1', 'Passo 2', 'Passo 3', 'Passo 4']

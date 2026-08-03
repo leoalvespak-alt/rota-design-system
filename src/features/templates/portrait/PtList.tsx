@@ -9,20 +9,11 @@ export interface PtListElements {
   items: string[]
 }
 
-export const ptListDefaults: PtListElements = {
-  tag: 'HOJE',
-  title: 'MISSÃO DO DIA',
-  items: [
-    'Estudar Direito Constitucional: 2h',
-    'Resolver 50 questões de Português',
-    'Revisar anotações de Matemática',
-    'Assistir videoaula de Raciocínio Lógico',
-  ],
-}
-
 /** Espelha renderListPortrait() do Gerador/index.html (linha 2484). */
 export function PtListRender({ elements: el, dark }: TemplateRenderProps<PtListElements>) {
-  const items = Array.isArray(el.items) ? el.items : ['Tópico 1', 'Tópico 2', 'Tópico 3', 'Tópico 4']
+  const items = Array.isArray(el.items)
+    ? el.items
+    : ['Tópico 1', 'Tópico 2', 'Tópico 3', 'Tópico 4']
   return (
     <div className="relative z-2 flex h-full flex-col gap-7.5" style={{ padding: '110px 90px' }}>
       <TEyebrow fontSize={30}>
@@ -39,7 +30,10 @@ export function PtListRender({ elements: el, dark }: TemplateRenderProps<PtListE
             className="flex items-start gap-6 py-5.5"
             style={{ borderBottom: '1px solid var(--light-border)' }}
           >
-            <div className="min-w-10 shrink-0 font-mono text-4xl font-bold" style={{ color: 'var(--red)' }}>
+            <div
+              className="min-w-10 shrink-0 font-mono text-4xl font-bold"
+              style={{ color: 'var(--red)' }}
+            >
               {i + 1}
             </div>
             <TBody fontSize={40} dark={dark} style={{ paddingTop: 4 }}>

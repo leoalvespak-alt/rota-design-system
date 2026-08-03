@@ -19,14 +19,6 @@ export interface SqTweetElements {
   bgImg?: string
 }
 
-export const sqTweetDefaults: SqTweetElements = {
-  name: 'João Silva',
-  handle: '@joaosilva_rf',
-  body: 'O segredo da aprovação não é estudar 12h por dia. É estudar 4h todos os dias sem falta. Constância vence a intensidade.',
-  time: '10:45 AM · 15 Ago 2024',
-  metrics: '1.204 Retweets   4.892 Curtidas',
-}
-
 /** Espelha renderTweetSquare() do Gerador/index.html (linha 2398). */
 export function SqTweetRender({ elements: el, dark }: TemplateRenderProps<SqTweetElements>) {
   const onSlotClick = useSlotFilePicker()
@@ -34,30 +26,76 @@ export function SqTweetRender({ elements: el, dark }: TemplateRenderProps<SqTwee
     <div className="relative z-2 flex h-full flex-col items-center justify-center p-22.5">
       <div
         className="flex w-full flex-col gap-7.5 rounded-3xl border p-12.5"
-        style={{ background: 'var(--light-bg)', borderColor: 'var(--light-border)', boxShadow: '0 12px 36px rgba(0,0,0,0.06)' }}
+        style={{
+          background: 'var(--light-bg)',
+          borderColor: 'var(--light-border)',
+          boxShadow: '0 12px 36px rgba(0,0,0,0.06)',
+        }}
       >
         <div className="flex items-center gap-5">
           {/* Nota de fidelidade: .t-slot reage a #card-canvas.dark no original mesmo dentro
               do card sempre-light do tweet (renderTweetSquare, linha 2405) — comportamento
               replicado tal como é, não uma escolha nova desta migração. */}
-          <TSlot slotId="avatar" imageUrl={el.avatar} onClick={onSlotClick} dark={dark} label="FOTO" className="h-20 w-20 shrink-0 rounded-full" />
+          <TSlot
+            slotId="avatar"
+            imageUrl={el.avatar}
+            onClick={onSlotClick}
+            dark={dark}
+            label="FOTO"
+            className="h-20 w-20 shrink-0 rounded-full"
+          />
           <div>
-            <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 32, fontWeight: 700, color: 'var(--light-text)', lineHeight: 1.2 }}>
+            <div
+              style={{
+                fontFamily: "'IBM Plex Sans', sans-serif",
+                fontSize: 32,
+                fontWeight: 700,
+                color: 'var(--light-text)',
+                lineHeight: 1.2,
+              }}
+            >
               <EditableText path="name" value={el.name} />
             </div>
-            <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 26, color: 'var(--light-muted)' }}>
+            <div
+              style={{
+                fontFamily: "'IBM Plex Sans', sans-serif",
+                fontSize: 26,
+                color: 'var(--light-muted)',
+              }}
+            >
               <EditableText path="handle" value={el.handle} />
             </div>
           </div>
         </div>
-        <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 42, fontWeight: 400, color: 'var(--light-text)', lineHeight: 1.4 }}>
+        <div
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: 42,
+            fontWeight: 400,
+            color: 'var(--light-text)',
+            lineHeight: 1.4,
+          }}
+        >
           <EditableText path="body" value={el.body} />
         </div>
-        <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 24, color: 'var(--light-muted)' }}>
+        <div
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: 24,
+            color: 'var(--light-muted)',
+          }}
+        >
           <EditableText path="time" value={el.time} />
         </div>
         <div className="h-px w-full" style={{ background: 'var(--light-border)' }} />
-        <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 24, color: 'var(--light-muted)', fontWeight: 600 }}>
+        <div
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: 24,
+            color: 'var(--light-muted)',
+            fontWeight: 600,
+          }}
+        >
           <EditableText path="metrics" value={el.metrics} />
         </div>
       </div>
@@ -79,7 +117,11 @@ export function SqTweetControls(_props: TemplateControlsProps<SqTweetElements>) 
         </ControlRow>
       </ControlSection>
       <ControlSection title="Tema">
-        <ControlToggle label="Modo Escuro (Card)" checked={darkMode} onCheckedChange={toggleDarkMode} />
+        <ControlToggle
+          label="Modo Escuro (Card)"
+          checked={darkMode}
+          onCheckedChange={toggleDarkMode}
+        />
       </ControlSection>
     </>
   )

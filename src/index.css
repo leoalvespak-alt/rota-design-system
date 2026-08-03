@@ -1,7 +1,9 @@
+@layer reset, tokens, base, utilities, components, templates, overrides;
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Fontes self-hosted (necessário para document.fonts.ready ser confiável no export) */
+/* Fontes self-hosted (necessario para document.fonts.ready ser confiavel no export) */
 @import "@fontsource/ibm-plex-sans/300.css";
 @import "@fontsource/ibm-plex-sans/400.css";
 @import "@fontsource/ibm-plex-sans/500.css";
@@ -14,11 +16,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ===========================================================
-   DESIGN TOKENS — Rota de Ataque
-   Portados 1:1 do Gerador/index.html (:root, linhas 24-55).
-   Nenhum valor de cor foi "melhorado" — fidelidade ao baseline.
-=========================================================== */
+/* Design tokens gerados por Style Dictionary — fonte unica de verdade.
+   Os valores originais abaixo sao mantidos para compatibilidade com
+   as 26 templates existentes que referenciam --red, --light-bg, etc. */
 :root {
   /* Marca — vermelho de ação primária */
   --red: #C1121F;

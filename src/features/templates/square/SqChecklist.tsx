@@ -9,19 +9,11 @@ export interface SqChecklistElements {
   items: string[]
 }
 
-export const sqChecklistDefaults: SqChecklistElements = {
-  eyebrow: 'REVISÃO DIÁRIA',
-  title: 'EXECUTE O CHECKLIST',
-  items: [
-    'Cumprir as 4h de estudo planejadas',
-    'Resolver 30 questões da matéria do dia',
-    'Fazer revisão ativa do conteúdo estudado',
-    'Registrar dúvidas no caderno de erros',
-  ],
-}
-
 /** Espelha renderChecklistSquare() do Gerador/index.html (linha 2447). */
-export function SqChecklistRender({ elements: el, dark }: TemplateRenderProps<SqChecklistElements>) {
+export function SqChecklistRender({
+  elements: el,
+  dark,
+}: TemplateRenderProps<SqChecklistElements>) {
   const items = Array.isArray(el.items) ? el.items : ['Item 1', 'Item 2', 'Item 3']
   return (
     <div className="relative z-2 flex h-full flex-col gap-6 p-20">
@@ -45,7 +37,16 @@ export function SqChecklistRender({ elements: el, dark }: TemplateRenderProps<Sq
               className="flex h-10.5 w-10.5 shrink-0 items-center justify-center rounded-lg border-2"
               style={{ borderColor: 'var(--red)' }}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C1121F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#C1121F"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>

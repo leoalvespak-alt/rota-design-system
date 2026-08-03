@@ -32,29 +32,29 @@ Eyebrow/tag: 1-3 palavras em maiúsculas. Título: 4-8 palavras em maiúsculas. 
 
   const userMsg = `Crie o copy para: ${prompt}. Adapte para o template com os campos: ${availableFields.join(', ')}.`
 
-  let rawContent = ''
-
-  if (model.provider === 'claude') {
-    const resp = await fetch(model.baseUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: model.model,
-        max_tokens: 400,
-        messages: [{ role: 'user', content: `${systemPrompt}\n\n${userMsg}` }],
-      }),
-    })
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}))
-      throw new Error(err?.error?.message || `HTTP ${resp.status}`)
+  const rawContent = await (async () => {
+    if (model.provider === 'claude') {
+      const resp = await fetch(model.baseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: model.model,
+          max_tokens: 400,
+          messages: [{ role: 'user', content: `${systemPrompt}\n\n${userMsg}` }],
+        }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        throw new Error(err?.error?.message || `HTTP ${resp.status}`)
+      }
+      const data = await resp.json()
+      return data.content?.[0]?.text || ''
     }
-    const data = await resp.json()
-    rawContent = data.content?.[0]?.text || ''
-  } else {
+
     const resp = await fetch(model.baseUrl, {
       method: 'POST',
       headers: {
@@ -76,8 +76,8 @@ Eyebrow/tag: 1-3 palavras em maiúsculas. Título: 4-8 palavras em maiúsculas. 
       throw new Error(err?.error?.message || `HTTP ${resp.status}`)
     }
     const data = await resp.json()
-    rawContent = data.choices?.[0]?.message?.content || ''
-  }
+    return data.choices?.[0]?.message?.content || ''
+  })()
 
   const clean = rawContent.replace(/```json|```/g, '').trim()
   const parsed = JSON.parse(clean)

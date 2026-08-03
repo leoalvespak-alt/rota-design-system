@@ -5,13 +5,6 @@ import { CrCoverControls, type CrCoverElements } from './CrCover'
 
 export type CrCoverDarkElements = CrCoverElements
 
-export const crCoverDarkDefaults: CrCoverDarkElements = {
-  eyebrow: 'SÉRIE APROVADOS',
-  title: 'COMO PASSAR NA RECEITA FEDERAL',
-  subtitle: 'O caminho real — sem atalhos',
-  page: '01 / 06',
-}
-
 /**
  * Espelha renderCarouselCoverDark() do Gerador/index.html (linha 2522).
  * Corrige a auditoria item 9: o original duplicava manualmente
@@ -29,7 +22,10 @@ export function CrCoverDarkRender({ elements: el }: TemplateRenderProps<CrCoverD
         <div className="absolute inset-0 z-0" style={{ background: '#0A0A0A' }} />
       )}
       {hasImg && (
-        <div className="pointer-events-none absolute inset-0 z-1" style={{ background: 'rgba(0,0,0,0.65)' }} />
+        <div
+          className="pointer-events-none absolute inset-0 z-1"
+          style={{ background: 'rgba(0,0,0,0.65)' }}
+        />
       )}
       <div className="relative z-3 flex h-full flex-col items-start justify-end gap-6 p-[90px]">
         {el.eyebrow !== false && (
@@ -52,7 +48,13 @@ export function CrCoverDarkRender({ elements: el }: TemplateRenderProps<CrCoverD
         </div>
         <TRedline />
         {el.subtitle !== false && (
-          <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 34, color: 'rgba(255,255,255,0.75)' }}>
+          <div
+            style={{
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              fontSize: 34,
+              color: 'rgba(255,255,255,0.75)',
+            }}
+          >
             <EditableText path="subtitle" value={el.subtitle} />
           </div>
         )}

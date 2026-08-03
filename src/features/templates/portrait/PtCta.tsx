@@ -11,13 +11,6 @@ export interface PtCtaElements {
   bgImg?: string
 }
 
-export const ptCtaDefaults: PtCtaElements = {
-  eyebrow: 'ACESSE AGORA',
-  title: 'SEU CRONOGRAMA PRONTO',
-  body: 'Pare de estudar sem método. Acesse a plataforma e receba seu plano personalizado em minutos.',
-  cta: 'COMEÇAR AGORA',
-}
-
 /** Espelha renderCTAPortrait() do Gerador/index.html (linha 2503). */
 export function PtCtaRender({ elements: el, dark }: TemplateRenderProps<PtCtaElements>) {
   const hasImg = Boolean(el.bgImg)
@@ -32,7 +25,9 @@ export function PtCtaRender({ elements: el, dark }: TemplateRenderProps<PtCtaEle
       {hasImg && (
         <div
           className="pointer-events-none absolute inset-0 z-1"
-          style={{ background: 'linear-gradient(to bottom,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.75) 100%)' }}
+          style={{
+            background: 'linear-gradient(to bottom,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.75) 100%)',
+          }}
         />
       )}
       {el.eyebrow !== false && (
@@ -49,7 +44,11 @@ export function PtCtaRender({ elements: el, dark }: TemplateRenderProps<PtCtaEle
       </div>
       <TRedline width={70} height={6} className="relative z-3" />
       <div className="relative z-3">
-        <TBody fontSize={40} dark={dark} colorOverride={hasImg ? 'rgba(255,255,255,0.8)' : undefined}>
+        <TBody
+          fontSize={40}
+          dark={dark}
+          colorOverride={hasImg ? 'rgba(255,255,255,0.8)' : undefined}
+        >
           <EditableText path="body" value={el.body} />
         </TBody>
       </div>

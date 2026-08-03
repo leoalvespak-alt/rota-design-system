@@ -9,16 +9,6 @@ export interface SqTipElements {
   items: string[]
 }
 
-export const sqTipDefaults: SqTipElements = {
-  tag: 'DICA 01',
-  title: 'CRONOGRAMA SEMANAL',
-  items: [
-    'Distribua as matérias por blocos de 2h',
-    'Reserve sempre 1h para revisão ativa',
-    'Simule provas nos finais de semana',
-  ],
-}
-
 /** Espelha renderTipSquare() do Gerador/index.html (linha 2173). */
 export function SqTipRender({ elements: el, dark }: TemplateRenderProps<SqTipElements>) {
   const items = Array.isArray(el.items) ? el.items : ['Item 1', 'Item 2', 'Item 3']

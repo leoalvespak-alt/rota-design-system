@@ -16,12 +16,6 @@ export interface PtCoverElements {
   bgImg?: string
 }
 
-export const ptCoverDefaults: PtCoverElements = {
-  eyebrow: 'MISSÃO HOJE',
-  title: 'EXECUTE O PLANO',
-  subtitle: 'Sem desculpas. A aprovação é sua.',
-}
-
 /** Espelha renderCoverPortrait() do Gerador/index.html (linha 2217). */
 export function PtCoverRender({ elements: el, dark }: TemplateRenderProps<PtCoverElements>) {
   const hasImg = Boolean(el.bgImg)
@@ -30,12 +24,17 @@ export function PtCoverRender({ elements: el, dark }: TemplateRenderProps<PtCove
       {hasImg ? (
         <img src={el.bgImg} alt="" className="absolute inset-0 z-0 h-full w-full object-cover" />
       ) : (
-        <div className="absolute top-0 left-0 z-0 h-[65%] w-full" style={{ background: 'var(--light-slot)' }} />
+        <div
+          className="absolute top-0 left-0 z-0 h-[65%] w-full"
+          style={{ background: 'var(--light-slot)' }}
+        />
       )}
       {hasImg && (
         <div
           className="pointer-events-none absolute inset-0 z-[1]"
-          style={{ background: 'linear-gradient(to bottom,rgba(0,0,0,0.2) 40%,rgba(0,0,0,0.85) 100%)' }}
+          style={{
+            background: 'linear-gradient(to bottom,rgba(0,0,0,0.2) 40%,rgba(0,0,0,0.85) 100%)',
+          }}
         />
       )}
       {el.eyebrow !== false && (
@@ -53,7 +52,11 @@ export function PtCoverRender({ elements: el, dark }: TemplateRenderProps<PtCove
       <TRedline className="relative z-[3]" />
       {el.subtitle !== false && (
         <div className="relative z-[3]">
-          <TBody fontSize={44} dark={dark} colorOverride={hasImg ? 'rgba(255,255,255,0.85)' : undefined}>
+          <TBody
+            fontSize={44}
+            dark={dark}
+            colorOverride={hasImg ? 'rgba(255,255,255,0.85)' : undefined}
+          >
             <EditableText path="subtitle" value={el.subtitle} />
           </TBody>
         </div>
