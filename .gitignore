@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.codegraph/
 
 # Editor directories and files
 .vscode/*
@@ -31,6 +32,7 @@ tests/visual/*.png
 
 # Credenciais/config real de deploy — nunca commitar
 deploy/.env
+deploy/.env.production
 .env
 .env.local
 .env.*.local
