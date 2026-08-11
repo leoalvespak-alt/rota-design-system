@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HeaderPrimaryButton, HeaderSecondaryButton } from './HeaderButtons'
 import { useSeriesExport } from '@/features/series/useSeriesExport'
 import { ProjectSessionControls } from '@/features/projects/ProjectSessionControls'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Download,
   Layers3,
@@ -15,6 +16,9 @@ import {
   Redo2,
   RotateCcw,
   Save,
+  SlidersHorizontal,
+  Moon,
+  Sun,
   Undo2,
 } from 'lucide-react'
 
@@ -29,6 +33,8 @@ const TABS: { id: AppTab; label: string }[] = [
 /** Espelha <header class="app-header"> do Gerador/index.html (linhas 1272-1318). */
 export function AppHeader({ onDownload, onSave }: { onDownload: () => void; onSave: () => void }) {
   const activeTab = useUiStore((s) => s.activeTab)
+  const theme = useUiStore((s) => s.theme)
+  const toggleTheme = useUiStore((s) => s.toggleTheme)
   const setTab = useUiStore((s) => s.setTab)
   const toggleLeftPanel = useUiStore((s) => s.toggleLeftPanel)
   const toggleRightPanel = useUiStore((s) => s.toggleRightPanel)
@@ -45,14 +51,14 @@ export function AppHeader({ onDownload, onSave }: { onDownload: () => void; onSa
 
   return (
     <header className="relative z-50 flex min-h-13 shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-ui-border bg-ui-panel px-3 py-2 lg:px-5">
-      <div className="flex min-w-0 items-center gap-2.5">
-        <svg viewBox="0 0 30 30" width={30} height={30} fill="none" className="shrink-0">
-          <polygon points="15,2 28,28 2,28" fill="#C1121F" />
-          <line x1="15" y1="10" x2="15" y2="26" stroke="white" strokeWidth="2" strokeDasharray="3 3" />
-        </svg>
-        <span className="font-heading text-lg leading-none font-bold tracking-[0.06em] text-white uppercase sm:text-xl">
-          Rota de <span className="text-brand-red">Ataque</span>
-        </span>
+      <div className="flex min-w-0 items-center">
+        <img
+          src={theme === 'dark'
+            ? '/logos/01 LOGO ATAQUE - SEM FUNDO.png'
+            : '/logos/03 LOGO ATAQUE - SEM FUNDO.png'}
+          alt="Ataque"
+          className="h-8 w-auto max-w-36 object-contain sm:h-9 sm:max-w-40"
+        />
       </div>
 
       <div className="hidden h-6.5 w-px bg-ui-border md:block" />
@@ -74,86 +80,113 @@ export function AppHeader({ onDownload, onSave }: { onDownload: () => void; onSa
         ))}
       </nav>
 
+      <HeaderSecondaryButton
+        title={theme === 'dark' ? 'Usar modo claro' : 'Usar modo escuro'}
+        aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
+        className="ml-auto size-9 px-0"
+        onClick={toggleTheme}
+      >
+        {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      </HeaderSecondaryButton>
+
       {activeTab === 'create' && (
-        <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-2">
-          <div className="flex items-center gap-1 xl:hidden">
-            <HeaderSecondaryButton title="Abrir templates" aria-label="Abrir templates" onClick={toggleLeftPanel}>
-              <PanelLeft className="size-4" />
-            </HeaderSecondaryButton>
-            <HeaderSecondaryButton title="Abrir controles" aria-label="Abrir controles" onClick={toggleRightPanel}>
-              <PanelRight className="size-4" />
-            </HeaderSecondaryButton>
-          </div>
-
-          <div className="hidden items-center gap-2 lg:flex">
-            <span className="rounded-full border border-ui-border bg-ui-panel2 px-3 py-1 text-xs whitespace-nowrap text-ui-muted">
-              {format === 'portrait' ? 'Retrato 1080x1920' : 'Quadrado 1080x1080'}
-            </span>
-            <span className="text-xs text-ui-muted">Zoom</span>
-            <Select value={String(zoom)} onValueChange={(v) => setZoom(Number(v) as never)}>
-              <SelectTrigger className="w-20 text-[13px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ZOOM_LEVELS.map((z) => (
-                  <SelectItem key={z} value={String(z)}>
-                    {Math.round(z * 100)}%
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
+        <div className="flex min-w-0 items-center justify-end gap-2">
           <div className="flex items-center gap-1.5 overflow-x-auto">
-            <HeaderSecondaryButton
-              active={seriesMode}
-              title="Modo serie"
-              className="hidden lg:inline-flex"
-              onClick={toggleSeriesMode}
-            >
-              <Layers3 className="size-4" />
-              <span className="hidden 2xl:inline">Modo Serie</span>
-            </HeaderSecondaryButton>
-            {seriesSlidesCount > 0 && (
-              <HeaderPrimaryButton title="Exportar serie" onClick={exportSeriesZIP}>
-                <Package className="size-4" />
-                <span className="hidden 2xl:inline">Exportar Serie</span>
-              </HeaderPrimaryButton>
-            )}
+            <Popover>
+              <PopoverTrigger
+                aria-label="Abrir opções de visualização"
+                title="Visualização e painéis"
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-ui-border bg-ui-panel2 text-ui-text transition-colors hover:border-brand-red hover:text-brand-red"
+              >
+                <SlidersHorizontal className="size-4" />
+              </PopoverTrigger>
+              <PopoverContent align="end" className="border border-ui-border bg-ui-panel text-ui-text">
+                <div>
+                  <div className="text-xs font-semibold">Visualização</div>
+                  <div className="mt-0.5 text-[10px] text-ui-muted">
+                    {format === 'portrait' ? 'Retrato 1080×1920' : 'Quadrado 1080×1080'}
+                  </div>
+                </div>
+                <label className="flex items-center justify-between gap-3 text-xs text-ui-muted">
+                  Zoom
+                  <Select value={String(zoom)} onValueChange={(v) => setZoom(Number(v) as never)}>
+                    <SelectTrigger className="w-24 text-[13px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ZOOM_LEVELS.map((z) => (
+                        <SelectItem key={z} value={String(z)}>{Math.round(z * 100)}%</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={toggleLeftPanel} className="flex items-center justify-center gap-2 rounded-lg border border-ui-border bg-ui-panel2 px-2 py-2 text-xs hover:border-brand-red hover:text-brand-red">
+                    <PanelLeft className="size-4" /> Biblioteca
+                  </button>
+                  <button type="button" onClick={toggleRightPanel} className="flex items-center justify-center gap-2 rounded-lg border border-ui-border bg-ui-panel2 px-2 py-2 text-xs hover:border-brand-red hover:text-brand-red">
+                    <PanelRight className="size-4" /> Ajustes
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger
+                aria-label="Abrir opções do carrossel"
+                title="Opções do carrossel"
+                className={cn(
+                  'inline-flex size-9 shrink-0 items-center justify-center rounded-lg border bg-ui-panel2 text-ui-text transition-colors hover:border-brand-red hover:text-brand-red',
+                  seriesMode ? 'border-brand-red text-brand-red' : 'border-ui-border',
+                )}
+              >
+                <Layers3 className="size-4" />
+              </PopoverTrigger>
+              <PopoverContent align="end" className="border border-ui-border bg-ui-panel text-ui-text">
+                <div>
+                  <div className="text-xs font-semibold">Carrossel</div>
+                  <div className="mt-0.5 text-[10px] text-ui-muted">Criação e exportação da série de cards.</div>
+                </div>
+                <HeaderSecondaryButton active={seriesMode} onClick={toggleSeriesMode} className="w-full justify-start">
+                  <Layers3 className="size-4" /> {seriesMode ? 'Sair do modo série' : 'Ativar modo série'}
+                </HeaderSecondaryButton>
+                {seriesSlidesCount > 0 && (
+                  <HeaderPrimaryButton title="Exportar série" onClick={exportSeriesZIP} className="w-full justify-start">
+                    <Package className="size-4" /> Exportar série em ZIP
+                  </HeaderPrimaryButton>
+                )}
+              </PopoverContent>
+            </Popover>
+
             <HeaderSecondaryButton
               title="Desfazer (Ctrl+Z)"
               aria-label="Desfazer"
-              className="hidden lg:inline-flex"
+              className="hidden px-0 lg:inline-flex lg:size-9"
               onClick={() => undo()}
             >
               <Undo2 className="size-4" />
-              <span className="hidden 2xl:inline">Desfazer</span>
             </HeaderSecondaryButton>
             <HeaderSecondaryButton
               title="Refazer (Ctrl+Y)"
               aria-label="Refazer"
-              className="hidden lg:inline-flex"
+              className="hidden px-0 lg:inline-flex lg:size-9"
               onClick={() => redo()}
             >
               <Redo2 className="size-4" />
-              <span className="hidden 2xl:inline">Refazer</span>
             </HeaderSecondaryButton>
             <HeaderSecondaryButton
               title="Resetar arte"
               aria-label="Resetar arte"
-              className="hidden lg:inline-flex"
+              className="hidden px-0 lg:inline-flex lg:size-9"
               onClick={resetCard}
             >
               <RotateCcw className="size-4" />
-              <span className="hidden 2xl:inline">Resetar</span>
             </HeaderSecondaryButton>
-            <HeaderSecondaryButton title="Salvar arte" className="hidden sm:inline-flex" onClick={onSave}>
+            <HeaderSecondaryButton title="Salvar arte" aria-label="Salvar arte" className="hidden px-0 sm:inline-flex sm:size-9" onClick={onSave}>
               <Save className="size-4" />
-              <span className="hidden sm:inline">Salvar</span>
             </HeaderSecondaryButton>
-            <HeaderPrimaryButton title="Baixar PNG" onClick={onDownload}>
+            <HeaderPrimaryButton title="Baixar PNG" aria-label="Baixar PNG" className="size-9 px-0" onClick={onDownload}>
               <Download className="size-4" />
-              <span className="hidden sm:inline">PNG</span>
             </HeaderPrimaryButton>
           </div>
         </div>

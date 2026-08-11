@@ -20,7 +20,7 @@ export function ControlToggle({ label, checked, onCheckedChange }: ControlToggle
       <Switch
         checked={checked}
         onCheckedChange={onCheckedChange}
-        className="data-checked:bg-brand-red data-unchecked:bg-ui-border"
+        aria-label={label}
       />
     </div>
   )

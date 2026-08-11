@@ -4,6 +4,7 @@ import { getTemplateById } from '@/features/templates/registry'
 import { CanvasFrame } from '@/features/templates/primitives'
 import { TextureLayer } from './TextureLayer'
 import { WatermarkLayer } from './WatermarkLayer'
+import { CardLayoutProvider } from '@/features/editor/layout/cardLayout'
 
 /** Espelha .canvas-area / #preview-wrapper / #card-canvas do Gerador/index.html (linhas 1358-1367). */
 export function Canvas() {
@@ -22,8 +23,8 @@ export function Canvas() {
     <main
       className="flex flex-1 items-center justify-center overflow-auto p-10"
       style={{
-        background: '#111',
-        backgroundImage: 'radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)',
+        background: 'var(--workspace-bg)',
+        backgroundImage: 'radial-gradient(var(--workspace-dot) 1px, transparent 1px)',
         backgroundSize: '20px 20px',
       }}
     >
@@ -44,9 +45,11 @@ export function Canvas() {
             )}
             {/* key força remontagem completa ao trocar de template — nenhum EditableText
                 de um template reaproveita por engano o DOM node de outro (ver EditableText.tsx). */}
-            <tpl.Render key={activeTemplateId} elements={elements as never} dark={darkMode} />
+            <CardLayoutProvider elements={elements}>
+              <tpl.Render key={activeTemplateId} elements={elements as never} dark={darkMode} />
+            </CardLayoutProvider>
             <TextureLayer dark={darkMode} />
-            <WatermarkLayer />
+            <WatermarkLayer dark={darkMode} />
           </CanvasFrame>
         ) : (
           <div className="flex h-40 w-40 items-center justify-center text-sm text-ui-muted">

@@ -49,11 +49,15 @@ export function loadProjectIntoLegacyStores(project: ProjectDocument): boolean {
   decor.setWatermarkPosition(first.decor.watermark.position)
   decor.setWatermarkOpacity(first.decor.watermark.opacity * 100)
   decor.setBgLibrarySelected(first.decor.bgLibraryId)
-  const slides: SeriesSlide[] = artifact.cards.map((card) => ({
+  const slides: SeriesSlide[] = artifact.kind === 'carousel' ? artifact.cards.map((card) => ({
     id: card.id, templateId: card.templateId, elements: structuredClone(card.elements), darkMode: card.darkMode,
     watermark: { enabled: card.decor.watermark.visible, text: card.decor.watermark.text, position: card.decor.watermark.position, opacity: card.decor.watermark.opacity },
     texture: { type: card.decor.texture.type, enabled: card.decor.texture.type !== 'none', opacity: card.decor.texture.opacity },
-  }))
-  useSeriesStore.setState({ slides, seriesMode: slides.length > 1 })
+  })) : []
+  useSeriesStore.setState({
+    slides,
+    seriesMode: artifact.kind === 'carousel',
+    activeSlideId: artifact.kind === 'carousel' ? (slides[0]?.id ?? null) : null,
+  })
   return true
 }

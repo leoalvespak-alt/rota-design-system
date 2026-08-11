@@ -6,6 +6,7 @@ import { BgLibraryControls } from './BgLibraryControls'
 import { AICopyControls } from './AICopyControls'
 import { AIImageControls } from './AIImageControls'
 import { QualityControls } from './QualityControls'
+import { ContentFitControls } from './ContentFitControls'
 
 /**
  * Espelha buildRightPanel() do Gerador/index.html original (linha 3305).
@@ -40,6 +41,7 @@ export function ControlPanel() {
           Clique sobre qualquer texto no card para editar diretamente.
         </p>
       </div>
+      <ContentFitControls />
       <tpl.Controls elements={elements as never} />
       <AICopyControls />
       <AIImageControls />

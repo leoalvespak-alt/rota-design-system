@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { AppHeader } from './AppHeader'
 import { Gallery } from '@/features/editor/Gallery/Gallery'
+import { TemplateLibraryView } from '@/features/editor/Gallery/TemplateLibraryView'
 import { Canvas } from '@/features/editor/Canvas/Canvas'
 import { ControlPanel } from '@/features/editor/ControlPanel/ControlPanel'
 import { SeriesBar } from '@/features/series/SeriesBar'
@@ -10,22 +11,42 @@ import { useEditorStore } from '@/stores/useEditorStore'
 import { TEMPLATES } from '@/features/templates/registry'
 import { useExportCard } from '@/lib/export/useExportCard'
 import { useSaveArt } from '@/features/history/useSaveArt'
-import { BrandView } from '@/features/brand/BrandView'
-import { AIConfigView } from '@/features/ai/AIConfigView'
-import { RendersView } from '@/features/renders/RendersView'
-import { HistoryView } from '@/features/history/HistoryView'
 import { cn } from '@/lib/utils'
 import { CommandPalette } from '@/features/commands/CommandPalette'
+import { useTemplateLibraryStore } from '@/stores/useTemplateLibraryStore'
 
 const TAB_ORDER: AppTab[] = ['create', 'brand', 'ai-config', 'renders', 'history']
+const BrandView = lazy(() =>
+  import('@/features/brand/BrandView').then((module) => ({ default: module.BrandView })),
+)
+const AIConfigView = lazy(() =>
+  import('@/features/ai/AIConfigView').then((module) => ({ default: module.AIConfigView })),
+)
+const RendersView = lazy(() =>
+  import('@/features/renders/RendersView').then((module) => ({ default: module.RendersView })),
+)
+const HistoryView = lazy(() =>
+  import('@/features/history/HistoryView').then((module) => ({ default: module.HistoryView })),
+)
+const EditorialView = lazy(() =>
+  import('@/features/editorial/EditorialView').then((module) => ({
+    default: module.EditorialView,
+  })),
+)
+const TabLoading = () => (
+  <div className="flex flex-1 items-center justify-center text-sm text-ui-muted">Carregando…</div>
+)
 
 /** Espelha <div class="app-body"> + as 5 abas do Gerador/index.html (linhas 1270-1855). */
 export function AppShell() {
   const activeTab = useUiStore((s) => s.activeTab)
+  const theme = useUiStore((s) => s.theme)
   const setTab = useUiStore((s) => s.setTab)
   const leftPanelOpen = useUiStore((s) => s.leftPanelOpen)
   const rightPanelOpen = useUiStore((s) => s.rightPanelOpen)
   const closePanels = useUiStore((s) => s.closePanels)
+  const templateLibraryOpen = useTemplateLibraryStore((s) => s.isOpen)
+  const closeTemplateLibrary = useTemplateLibraryStore((s) => s.closeLibrary)
   const activeTemplateId = useEditorStore((s) => s.activeTemplateId)
   const selectTemplate = useEditorStore((s) => s.selectTemplate)
   const undo = () => useEditorStore.temporal.getState().undo()
@@ -39,6 +60,18 @@ export function AppShell() {
       selectTemplate(TEMPLATES[0]!.id)
     }
   }, [activeTemplateId, selectTemplate])
+
+  useEffect(() => {
+    if (activeTab !== 'create') closeTemplateLibrary()
+  }, [activeTab, closeTemplateLibrary])
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.dataset.uiTheme = theme
+    root.classList.toggle('dark', theme === 'dark')
+    root.style.colorScheme = theme
+    localStorage.setItem('rota-design-ui-theme', theme)
+  }, [theme])
 
   // Ganchos de teste E2E (FASE 13 — diff visual contra o baseline do HTML original).
   // Só existem em dev; não fazem parte do bundle de produção (tree-shaken pelo `if (import.meta.env.DEV)`).
@@ -92,7 +125,15 @@ export function AppShell() {
   return (
     <div className="flex h-screen flex-col">
       <AppHeader onDownload={downloadPNG} onSave={saveCurrentArt} />
-      <CommandPalette onTab={setTab} onSave={() => { void saveCurrentArt() }} onExport={() => { void downloadPNG() }} />
+      <CommandPalette
+        onTab={setTab}
+        onSave={() => {
+          void saveCurrentArt()
+        }}
+        onExport={() => {
+          void downloadPNG()
+        }}
+      />
 
       <AnimatePresence mode="wait">
         {activeTab === 'create' && (
@@ -104,39 +145,45 @@ export function AppShell() {
             transition={{ duration: 0.15 }}
             className="relative flex flex-1 overflow-hidden"
           >
-            <div className="hidden xl:flex">
-              <Gallery />
-            </div>
-            {(leftPanelOpen || rightPanelOpen) && (
-              <button
-                aria-label="Fechar painéis"
-                className="fixed inset-0 z-30 bg-black/60 xl:hidden"
-                onClick={closePanels}
-              />
+            {templateLibraryOpen ? (
+              <TemplateLibraryView />
+            ) : (
+              <>
+                <div className="hidden xl:flex">
+                  <Gallery />
+                </div>
+                {(leftPanelOpen || rightPanelOpen) && (
+                  <button
+                    aria-label="Fechar painéis"
+                    className="fixed inset-0 z-30 bg-black/60 xl:hidden"
+                    onClick={closePanels}
+                  />
+                )}
+                <div
+                  className={cn(
+                    'fixed top-[96px] bottom-0 left-0 z-40 flex max-w-[88vw] shadow-2xl transition-transform duration-200 md:top-13 xl:hidden',
+                    leftPanelOpen ? 'translate-x-0' : '-translate-x-full',
+                  )}
+                >
+                  <Gallery />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+                  <SeriesBar />
+                  <Canvas />
+                </div>
+                <div className="hidden xl:flex">
+                  <ControlPanel />
+                </div>
+                <div
+                  className={cn(
+                    'fixed top-[96px] right-0 bottom-0 z-40 flex max-w-[88vw] shadow-2xl transition-transform duration-200 md:top-13 xl:hidden',
+                    rightPanelOpen ? 'translate-x-0' : 'translate-x-full',
+                  )}
+                >
+                  <ControlPanel />
+                </div>
+              </>
             )}
-            <div
-              className={cn(
-                'fixed top-[96px] bottom-0 left-0 z-40 flex max-w-[88vw] shadow-2xl transition-transform duration-200 md:top-13 xl:hidden',
-                leftPanelOpen ? 'translate-x-0' : '-translate-x-full',
-              )}
-            >
-              <Gallery />
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-              <SeriesBar />
-              <Canvas />
-            </div>
-            <div className="hidden xl:flex">
-              <ControlPanel />
-            </div>
-            <div
-              className={cn(
-                'fixed top-[96px] right-0 bottom-0 z-40 flex max-w-[88vw] shadow-2xl transition-transform duration-200 md:top-13 xl:hidden',
-                rightPanelOpen ? 'translate-x-0' : 'translate-x-full',
-              )}
-            >
-              <ControlPanel />
-            </div>
           </motion.div>
         )}
         {activeTab === 'brand' && (
@@ -148,7 +195,9 @@ export function AppShell() {
             transition={{ duration: 0.2 }}
             className="flex flex-1 overflow-hidden"
           >
-            <BrandView />
+            <Suspense fallback={<TabLoading />}>
+              <BrandView />
+            </Suspense>
           </motion.div>
         )}
         {activeTab === 'ai-config' && (
@@ -160,7 +209,9 @@ export function AppShell() {
             transition={{ duration: 0.2 }}
             className="flex flex-1 overflow-hidden"
           >
-            <AIConfigView />
+            <Suspense fallback={<TabLoading />}>
+              <AIConfigView />
+            </Suspense>
           </motion.div>
         )}
         {activeTab === 'renders' && (
@@ -172,7 +223,9 @@ export function AppShell() {
             transition={{ duration: 0.2 }}
             className="flex flex-1 overflow-hidden"
           >
-            <RendersView />
+            <Suspense fallback={<TabLoading />}>
+              <RendersView />
+            </Suspense>
           </motion.div>
         )}
         {activeTab === 'history' && (
@@ -184,7 +237,23 @@ export function AppShell() {
             transition={{ duration: 0.2 }}
             className="flex flex-1 overflow-hidden"
           >
-            <HistoryView />
+            <Suspense fallback={<TabLoading />}>
+              <HistoryView />
+            </Suspense>
+          </motion.div>
+        )}
+        {activeTab === 'editorial' && (
+          <motion.div
+            key="editorial"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-1 overflow-hidden"
+          >
+            <Suspense fallback={<TabLoading />}>
+              <EditorialView />
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>

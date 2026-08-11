@@ -2,27 +2,14 @@ import { useEffect, useMemo, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { AutosaveService, registerVisibilityFlush } from '@/domain/autosave'
 import { editorToCard, loadProjectIntoLegacyStores, slideToCard } from '@/domain/adapters'
-import { createProject, stableId, type ProjectDocument } from '@/domain/documents'
+import { type ProjectDocument } from '@/domain/documents'
 import { ProjectRepository } from '@/domain/repositories'
-import { useFeatureFlags } from '@/domain/featureFlags'
 import { useDecorStore } from '@/stores/useDecorStore'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { useProjectSessionStore } from '@/stores/useProjectSessionStore'
 import { useSeriesStore } from '@/stores/useSeriesStore'
 import { ProjectRecoveryNotice } from './ProjectRecoveryNotice'
-
-function createDocument(): ProjectDocument | undefined {
-  const editor = useEditorStore.getState()
-  const decor = useDecorStore.getState()
-  const card = editorToCard(editor, decor)
-  if (!card) return undefined
-  const project = createProject('Projeto local')
-  const cards = useSeriesStore.getState().slides.length > 0 ? useSeriesStore.getState().slides.map(slideToCard) : [card]
-  project.campaigns = [{
-    id: stableId('campaign'), name: 'Campanha padrão', status: 'draft', artifacts: [{ id: stableId('artifact'), kind: cards.length > 1 ? 'carousel' : editor.format === 'portrait' ? 'story' : 'post', cards }], linkedComponents: [], featurePreferences: {},
-  }]
-  return project
-}
+import { ensureEditorialSeedEditions } from '@/features/editions/editorialSeed'
 
 function updateDocument(project: ProjectDocument): ProjectDocument | undefined {
   const editor = useEditorStore.getState()
@@ -38,26 +25,23 @@ function updateDocument(project: ProjectDocument): ProjectDocument | undefined {
 
 /** Bridge opt-in: mantém a UI existente como fonte de edição e persiste um documento versionado. */
 export function ProjectSessionProvider({ children }: { children: ReactNode }) {
-  const enabled = useFeatureFlags((state) => state.flags.projects || state.flags.autosave)
   const repository = useMemo(() => new ProjectRepository(), [])
   const autosave = useMemo(() => new AutosaveService(repository), [repository])
   const projectRef = useRef<ProjectDocument | undefined>(undefined)
   const setProject = useProjectSessionStore((state) => state.setProject)
   const setStatus = useProjectSessionStore((state) => state.setStatus)
-  const offerRecovery = useProjectSessionStore((state) => state.offerRecovery)
 
   useEffect(() => {
-    if (!enabled) return
     let active = true
     setStatus('loading')
-    void repository.list().then((projects) => {
+    void ensureEditorialSeedEditions(repository).then(() => repository.list()).then((projects) => {
       if (!active) return
       const latest = projects.sort((a, b) => b.updatedAt - a.updatedAt)[0]
-      const project = latest ?? createDocument()
+      const project = latest
       if (!project) { setStatus('idle'); return }
       projectRef.current = project
+      loadProjectIntoLegacyStores(project)
       setProject(project)
-      if (latest) offerRecovery(latest)
       autosave.schedule(project)
     }).catch((error: unknown) => setStatus('error', error instanceof Error ? error.message : 'Não foi possível abrir o projeto.'))
 
@@ -81,7 +65,7 @@ export function ProjectSessionProvider({ children }: { children: ReactNode }) {
     })
     const unregisterVisibility = registerVisibilityFlush(autosave)
     return () => { active = false; unsubs.forEach((unsubscribe) => unsubscribe()); unsubscribeSession(); unregisterVisibility(); autosave.dispose() }
-  }, [autosave, enabled, offerRecovery, repository, setProject, setStatus])
+  }, [autosave, repository, setProject, setStatus])
 
   return <>{children}<ProjectRecoveryNotice /></>
 }

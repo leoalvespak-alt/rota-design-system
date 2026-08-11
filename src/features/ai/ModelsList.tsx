@@ -18,7 +18,7 @@ export function ModelsList({ onEdit }: { onEdit: (id: string) => void }) {
       {models.map((m) => (
         <div key={m.id} className="flex items-center gap-2.5 rounded-lg border border-ui-border bg-ui-panel2 px-3 py-2.5">
           <Switch
-            className="shrink-0 data-checked:bg-brand-red data-unchecked:bg-ui-border"
+            className="shrink-0"
             checked={m.enabled}
             onCheckedChange={() => {
               const ok = toggleModel(m.id)

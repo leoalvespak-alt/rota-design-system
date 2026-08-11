@@ -31,7 +31,7 @@ export function CarouselNavSection() {
       ) : (
         <p className="text-[11px] leading-relaxed text-ui-muted">
           Modo Série ativo — use a barra acima do card para adicionar e navegar entre os
-          slides, e o botão "📦 Exportar Série" no topo para baixar tudo em .zip.
+          slides. Para baixar tudo em .zip, abra o menu de carrossel no topo.
         </p>
       )}
     </div>

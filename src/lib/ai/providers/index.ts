@@ -11,3 +11,4 @@ export type {
 
 export { DeepSeekProvider } from './DeepSeekProvider'
 export { FalImageProvider } from './FalImageProvider'
+export { OpenAIEmbeddingProvider } from './OpenAIEmbeddingProvider'

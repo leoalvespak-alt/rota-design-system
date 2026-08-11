@@ -40,7 +40,7 @@ export const ExportNode = forwardRef<HTMLDivElement>(function ExportNode(_props,
           )}
           <tpl.Render elements={elements as never} dark={darkMode} exportMode />
           <TextureLayer dark={darkMode} />
-          <WatermarkLayer />
+          <WatermarkLayer dark={darkMode} />
         </CanvasFrame>
       </div>
     </div>

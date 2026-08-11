@@ -25,13 +25,16 @@ interface AIState {
   deepseekKey: string
   claudeKey: string
   falKey: string
+  embeddingKey: string
+  embeddingModel: string
   copyModel: string
   models: AIModel[]
   generatedImageUrl: string | null
 }
 
 interface AIActions {
-  setKey: (key: 'deepseekKey' | 'claudeKey' | 'falKey', value: string) => void
+  setKey: (key: 'deepseekKey' | 'claudeKey' | 'falKey' | 'embeddingKey', value: string) => void
+  setEmbeddingModel: (model: string) => void
   setCopyModel: (id: string) => void
   addModel: (model: Omit<AIModel, 'id'>) => void
   updateModel: (id: string, patch: Partial<Omit<AIModel, 'id'>>) => void
@@ -74,6 +77,8 @@ export const useAIStore = create<AIState & AIActions>()(
       deepseekKey: '',
       claudeKey: '',
       falKey: '',
+      embeddingKey: '',
+      embeddingModel: 'text-embedding-3-small',
       copyModel: 'deepseek-default',
       models: DEFAULT_MODELS,
       generatedImageUrl: null,
@@ -87,6 +92,8 @@ export const useAIStore = create<AIState & AIActions>()(
         set((s) => {
           s.copyModel = id
         }),
+
+      setEmbeddingModel: (model) => set((s) => { s.embeddingModel = model }),
 
       addModel: (model) =>
         set((s) => {

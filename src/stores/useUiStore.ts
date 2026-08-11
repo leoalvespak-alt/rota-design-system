@@ -1,15 +1,26 @@
 import { create } from 'zustand'
 
-export type AppTab = 'create' | 'brand' | 'ai-config' | 'renders' | 'history'
-export type GalleryFilter = 'all' | 'square' | 'portrait' | 'carousel' | 'fiscal' | 'policial' | 'tribunal' | 'motivacao'
+export type AppTab = 'create' | 'brand' | 'ai-config' | 'renders' | 'history' | 'editorial'
+export type UiTheme = 'light' | 'dark'
+
+const getInitialTheme = (): UiTheme => {
+  if (typeof document !== 'undefined') {
+    const current = document.documentElement.dataset.uiTheme
+    if (current === 'light' || current === 'dark') return current
+  }
+  if (typeof localStorage !== 'undefined') {
+    return localStorage.getItem('rota-design-ui-theme') === 'light' ? 'light' : 'dark'
+  }
+  return 'dark'
+}
 
 interface UiState {
   activeTab: AppTab
-  galleryFilter: GalleryFilter
+  theme: UiTheme
   leftPanelOpen: boolean
   rightPanelOpen: boolean
   setTab: (tab: AppTab) => void
-  setGalleryFilter: (filter: GalleryFilter) => void
+  toggleTheme: () => void
   toggleLeftPanel: () => void
   toggleRightPanel: () => void
   closePanels: () => void
@@ -18,11 +29,11 @@ interface UiState {
 /** Espelha setTab()/activeFilter do Gerador/index.html original (linhas 3445, 2890). */
 export const useUiStore = create<UiState>()((set) => ({
   activeTab: 'create',
-  galleryFilter: 'all',
+  theme: getInitialTheme(),
   leftPanelOpen: false,
   rightPanelOpen: false,
   setTab: (tab) => set({ activeTab: tab, leftPanelOpen: false, rightPanelOpen: false }),
-  setGalleryFilter: (filter) => set({ galleryFilter: filter }),
+  toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
   toggleLeftPanel: () => set((s) => ({ leftPanelOpen: !s.leftPanelOpen, rightPanelOpen: false })),
   toggleRightPanel: () => set((s) => ({ rightPanelOpen: !s.rightPanelOpen, leftPanelOpen: false })),
   closePanels: () => set({ leftPanelOpen: false, rightPanelOpen: false }),

@@ -50,6 +50,8 @@ export interface EmbeddingProvider {
   id: string
   name: string
   embed(text: string): Promise<number[]>
+  embedMany?(texts: string[]): Promise<number[][]>
+  getDimensions?(): number
   isConfigured(): boolean
 }
 

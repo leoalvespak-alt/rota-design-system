@@ -1,8 +1,12 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import { CanvasFrame } from '@/features/templates/primitives'
 import type { TemplateDefinition } from '@/features/templates/types'
+import { CardLayoutProvider } from '@/features/editor/layout/cardLayout'
 
 interface TemplateThumbProps {
   template: TemplateDefinition<never>
+  elements?: Record<string, unknown>
+  dark?: boolean
 }
 
 /**
@@ -15,12 +19,32 @@ interface TemplateThumbProps {
  * cobertura automática de 26/26, e nunca fica dessincronizada de como o template
  * realmente se parece (uma fonte de verdade, não uma segunda representação para manter).
  */
-export function TemplateThumb({ template }: TemplateThumbProps) {
+export function TemplateThumb({ template, elements, dark = false }: TemplateThumbProps) {
   const { Render, defaults, format } = template
-  const scale = format === 'portrait' ? 260 / 1920 : 260 / 1080
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(260)
+  const scale = width / 1080
+
+  useLayoutEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const updateWidth = () => {
+      const nextWidth = container.getBoundingClientRect().width
+      if (nextWidth > 0) setWidth(nextWidth)
+    }
+
+    updateWidth()
+    if (typeof ResizeObserver === 'undefined') return
+
+    const observer = new ResizeObserver(updateWidth)
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <div
+      ref={containerRef}
       className="relative overflow-hidden"
       style={{ width: '100%', aspectRatio: format === 'portrait' ? '9 / 16' : '1 / 1' }}
     >
@@ -34,8 +58,10 @@ export function TemplateThumb({ template }: TemplateThumbProps) {
           pointerEvents: 'none',
         }}
       >
-        <CanvasFrame format={format} dark={false}>
-          <Render elements={defaults} dark={false} />
+        <CanvasFrame format={format} dark={dark}>
+          <CardLayoutProvider elements={(elements ?? defaults) as Record<string, unknown>}>
+            <Render elements={(elements ?? defaults) as never} dark={dark} />
+          </CardLayoutProvider>
         </CanvasFrame>
       </div>
     </div>

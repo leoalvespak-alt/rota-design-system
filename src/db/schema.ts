@@ -186,3 +186,5 @@ export const auditLogs = pgTable('audit_logs', {
   metadata: jsonb('metadata').$type<Record<string, unknown>>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+export * from './editorial-schema'

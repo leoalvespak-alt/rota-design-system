@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { useEditorStore } from '@/stores/useEditorStore'
+import { getAutoFitFactor, getLineHeight, useCardLayout } from '@/features/editor/layout/cardLayout'
 
 interface EditableTextProps {
   /** Caminho no state.elements, ex: "title", "stats.0.num", "rows.1.2". */
@@ -33,6 +34,7 @@ export function EditableText({ path, value, as = 'div', style, className }: Edit
   const ref = useRef<HTMLDivElement & HTMLSpanElement>(null)
   const setElementField = useEditorStore((s) => s.setElementField)
   const isFocused = useRef(false)
+  const layout = useCardLayout()
 
   // Montagem: escreve o valor inicial uma única vez.
   useLayoutEffect(() => {
@@ -48,6 +50,26 @@ export function EditableText({ path, value, as = 'div', style, className }: Edit
     if (el.innerHTML !== value) el.innerHTML = value
   }, [value])
 
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!layout.autoFit) {
+      el?.style.removeProperty('--auto-fit-factor')
+      return
+    }
+
+    if (!el) return
+    const measure = () => {
+      const parentWidth = el.parentElement?.getBoundingClientRect().width ?? 0
+      const baseFontSize = Number.parseFloat(window.getComputedStyle(el.parentElement ?? el).fontSize) || 0
+      el.style.setProperty('--auto-fit-factor', String(getAutoFitFactor(path, value, parentWidth, baseFontSize)))
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined' || !el.parentElement) return
+    const observer = new ResizeObserver(measure)
+    observer.observe(el.parentElement)
+    return () => observer.disconnect()
+  }, [layout.autoFit, path, value])
+
   const pathSegments = path.split('.').map((seg) => (/^\d+$/.test(seg) ? Number(seg) : seg))
 
   const handleInput = () => {
@@ -57,6 +79,13 @@ export function EditableText({ path, value, as = 'div', style, className }: Edit
   }
 
   const Tag = as
+  const isHeading = /(^|\.)(title|quote|big)$/.test(path)
+  const adaptiveStyle: CSSProperties = {}
+  if (layout.autoFit || layout.textScale !== 100) {
+    adaptiveStyle.fontSize = `calc(1em * ${layout.textScale / 100} * var(--auto-fit-factor, 1))`
+  }
+  const lineHeight = getLineHeight(layout.spacing, isHeading)
+  if (lineHeight !== undefined) adaptiveStyle.lineHeight = lineHeight
   return (
     <Tag
       ref={ref}
@@ -65,7 +94,11 @@ export function EditableText({ path, value, as = 'div', style, className }: Edit
       spellCheck={false}
       data-field={path}
       className={className}
-      style={style}
+      data-auto-fit={layout.autoFit ? 'true' : 'false'}
+      style={{
+        ...style,
+        ...adaptiveStyle,
+      }}
       onFocus={() => {
         isFocused.current = true
       }}

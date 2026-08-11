@@ -1,93 +1,76 @@
-# Deploy — Gerador de Criativos (Gerador-React)
+# Deploy — Gerador de Criativos
 
-Como o build é publicado no GitHub e no VPS de produção.
+O frontend é publicado como build estático no diretório exclusivo do Sistema de
+Design no VPS. Por padrão, ao terminar essa troca atômica, o script também chama
+`plataforma/deploy/deploy.ps1`: sobe a plataforma compartilhada, aplica migrations
+e valida que os containers da Gazeta Concursos não foram recriados.
 
-## Visão geral
+## Pré-requisitos locais
 
-App 100% client-side (Vite build estático). Não há servidor de API — `dist/` é
-servido diretamente pelo nginx.
+- Uma chave privada SSH autorizada no VPS. O padrão é
+  `C:\Users\Lenovo\.ssh\id_rsa`.
+- `deploy/.env` criado localmente a partir de `deploy/.env.example`.
+- Node.js, npm, tar, ssh e scp disponíveis.
 
-| Item | Valor |
-|---|---|
-| Repositório | `git@github.com:leoalvespak-alt/rota-design-system.git` (branch `main`) |
-| VPS | `187.127.249.22` (`srv1739841.hstgr.cloud`) — compartilhado com Rota de Ataque, Gazeta Concursos e Deriva |
-| Diretório no servidor | `/var/www/design-rota-ataque` |
-| Domínio | `design.rotadeataque.com.br` (nginx configurado; aguardando DNS apontar para emitir o certificado SSL via certbot) |
-| Config nginx | `/etc/nginx/sites-available/design.rotadeataque.com.br` |
+`deploy/.env` contém somente os parâmetros não sensíveis abaixo e já está no
+`.gitignore`:
 
-O VPS hospeda outros serviços (containers Docker `rota-aulas-engine`,
-`gazeta-n8n`, `gazeta-worker`, outros sites nginx). O deploy deste projeto só
-toca em `/var/www/design-rota-ataque` e no arquivo de config nginx do próprio
-domínio — nunca em outros diretórios ou containers.
-
-## Pré-requisito único: SSH sem senha
-
-O acesso ao VPS já funciona por chave SSH configurada nesta máquina
-(`ssh root@187.127.249.22` não pede senha). O script de deploy depende disso.
-A senha root do servidor (documentada em `CREDENCIAIS_VPS.txt`, na raiz de
-`Sistema de Design/`) é só o fallback de emergência — **não é usada pelo
-script** e não fica gravada em nenhum arquivo deste repositório.
-
-## Configuração inicial (uma vez só)
-
-```powershell
-cd "Gerador-React"
-copy deploy\.env.example deploy\.env
-notepad deploy\.env   # confira/ajuste VPS_HOST, VPS_USER, VPS_TARGET_DIR, VPS_DOMAIN
+```dotenv
+VPS_HOST=seu-vps.exemplo
+VPS_USER=usuario-administrativo
+VPS_TARGET_DIR=/var/www/design-rota-ataque
+VPS_DOMAIN=design.seu-dominio.exemplo
 ```
 
-`deploy/.env` está no `.gitignore` — nunca é commitado.
+Nunca salve senhas, tokens ou a chave privada no repositório ou no arquivo de
+ambiente de deploy.
 
-## Rodando o deploy
+## Publicação segura
 
-No **PowerShell**, a partir da pasta `Gerador-React/`:
-
-```powershell
-.\deploy\deploy.ps1
-```
-
-Isso faz, em sequência (tudo automático por padrão):
-1. `npm run lint` e `npm run build` (aborta se qualquer um falhar)
-2. `git add -A` + `git commit` + `git push origin main` (pula o commit se não
-   houver nada para commitar; nunca cria commit vazio)
-3. Empacota `dist/` num `.tar.gz`
-4. Envia para `/tmp/` no VPS via `scp`
-5. No servidor: apaga o conteúdo atual de `/var/www/design-rota-ataque`,
-   extrai o novo build no lugar, corrige dono (`www-data`) e roda `nginx -t`
-   (valida a config antes de qualquer coisa depender dela — se falhar, o
-   script para e avisa, sem deixar o site quebrado)
-
-### Variações
+No PowerShell, dentro de `Gerador-React`:
 
 ```powershell
-# Mensagem de commit customizada
-.\deploy\deploy.ps1 -Message "ajusta layout mobile do painel de controles"
-
-# Builda e envia pro VPS, mas NÃO mexe no git (sem commit/push)
 .\deploy\deploy.ps1 -NoPush
-
-# Reenvia o dist/ já buildado, sem rodar lint/build de novo
-.\deploy\deploy.ps1 -SkipBuild
 ```
 
-## Depois do deploy
+O parâmetro `-NoPush` é o modo recomendado e não faz `git add`, commit ou push.
+Na prática, o script não altera Git em nenhum modo.
 
-- Enquanto o DNS de `design.rotadeataque.com.br` não apontar para
-  `187.127.249.22`, o site responde só em `http://` (porta 80).
-- Assim que o DNS propagar, emitir o certificado (uma vez):
-  ```bash
-  ssh root@187.127.249.22
-  certbot --nginx -d design.rotadeataque.com.br
-  ```
-  O certbot edita a config nginx automaticamente para redirecionar HTTP→HTTPS
-  e passa a renovar sozinho (mesmo mecanismo já usado pelos outros domínios
-  no servidor).
+Para publicar somente o frontend estático, sem executar o deploy conjunto da
+plataforma, use `-DesignOnly`.
 
-## Troubleshooting
+Para usar outra chave autorizada:
 
-| Sintoma | Causa provável |
-|---|---|
-| `scp` pede senha ou trava | Chave SSH não autorizada nesta máquina — rode `ssh root@187.127.249.22` manualmente uma vez para diagnosticar |
-| `nginx -t` falha no final do script | Não deveria acontecer (o script só mexe nos arquivos estáticos, não na config nginx) — se acontecer, o site em produção **não foi afetado**, investigar a config existente separadamente |
-| Site no ar mas mostrando versão antiga | Cache do navegador/CDN — os arquivos em `/assets/` têm `Cache-Control: immutable` por 1 ano (nomes com hash do Vite, então isso é esperado); `index.html` não tem cache longo |
-| `deploy/.env não encontrado` | Rodar o passo de "Configuração inicial" acima |
+```powershell
+.\deploy\deploy.ps1 -NoPush -IdentityFile "C:\caminho\para\id_rsa"
+```
+
+O fluxo executa, nesta ordem:
+
+1. Confere a chave e os valores não sensíveis em `deploy/.env`.
+2. Faz preflight SSH não interativo com `-i`, `IdentitiesOnly=yes`,
+   `BatchMode=yes` e timeout de conexão.
+3. Confirma que o alvo é exatamente `/var/www/design-rota-ataque`.
+4. Executa lint e build, salvo quando `-SkipBuild` é solicitado.
+5. Envia um `.tar.gz` com nome exclusivo para `/tmp` no VPS.
+6. Extrai o build em diretório temporário irmão, valida `index.html`, ajusta
+   dono/permissões e executa `nginx -t`.
+7. Troca o diretório publicado somente depois das validações. Se a troca ou o
+   reload falhar, restaura automaticamente a versão anterior.
+8. Executa o deploy da plataforma para as campanhas Rota de Ataque e Gazeta
+   Concursos; `-DesignOnly` interrompe o fluxo antes desta etapa.
+9. Remove os arquivos temporários locais e remotos controlados pelo script.
+
+## Verificação após deploy
+
+O próprio script interrompe a publicação se o preflight, lint, build, upload ou
+validação do nginx falhar. Depois, confira o domínio configurado em
+`VPS_DOMAIN` e a rota de saúde da API quando ela estiver disponível no domínio.
+
+## Diagnóstico
+
+- `Chave SSH não encontrada`: informe `-IdentityFile` com um caminho válido.
+- `Permission denied (publickey)`: confirme que a chave indicada está
+  autorizada para o usuário configurado; não use senha como alternativa.
+- `nginx -t` ou reload falhou: a versão anterior é restaurada automaticamente.
+- `dist/index.html não existe`: rode sem `-SkipBuild` para gerar o artefato.

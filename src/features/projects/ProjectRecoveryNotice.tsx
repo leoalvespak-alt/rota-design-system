@@ -1,13 +1,11 @@
 import { loadProjectIntoLegacyStores } from '@/domain/adapters'
-import { useFeatureFlags } from '@/domain/featureFlags'
 import { useProjectSessionStore } from '@/stores/useProjectSessionStore'
 
 export function ProjectRecoveryNotice() {
-  const enabled = useFeatureFlags((state) => state.flags.projects || state.flags.autosave)
   const project = useProjectSessionStore((state) => state.recoveryProject)
   const setProject = useProjectSessionStore((state) => state.setProject)
   const clearRecovery = useProjectSessionStore((state) => state.clearRecovery)
-  if (!enabled || !project) return null
+  if (!project) return null
   return (
     <div className="fixed right-4 bottom-4 z-[90] w-80 rounded-lg border border-ui-border bg-ui-panel p-4 shadow-2xl">
       <p className="font-heading text-sm text-ui-text">Projeto recuperável</p>
