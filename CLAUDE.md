@@ -56,3 +56,11 @@ Key rules:
 - The **Build Path** field in Dokploy Application accepts a *directory*, not a filename. Use `/` (root), not `/Dockerfile`.
 - For infrastructure changes, consult `Docs/DEPLOY-DOKPLOY.md` first.
 - CI/CD is via `.github/workflows/dokploy-ci.yml` — pushes to the active branch trigger automatic deploys.
+
+# File writing safety
+
+**Never use PowerShell interpolated here-strings** (`@"..."@`) or `Set-Content` with interpolation
+to write code or Markdown. Backtick is escape and `$` is interpolation in PowerShell — this
+**has already destroyed** `otp-rate-limit.ts` and `DEPLOY-DOKPLOY.md`. Use literal here-strings
+(`@'...'@`), bash heredocs (`<<'EOF'`), or the agent's file-writing tools. After writing,
+validate: `grep -nP '[\x00-\x08\x0B\x0C\x0E-\x1F]' FILE`

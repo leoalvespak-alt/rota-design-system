@@ -6,4 +6,12 @@ Before modifying code, consult the project's documentation in the `Docs/` folder
 
 Always reply to the user in **pt-BR (Brazilian Portuguese)**.
 
-For deploy and infrastructure questions, consult `Docs/DEPLOY-DOKPLOY.md`. The three projects (Prospector, Gazeta, Design System) are deployed via Dokploy on VPS `187.127.249.22:3000`.
+For deploy and infrastructure questions, consult `Docs/DEPLOY-DOKPLOY.md`. The three projects (Prospector, Gazeta, Design System) are deployed via Dokploy on VPS `187.127.249.22:3100`.
+
+# File writing safety
+
+**Never use PowerShell interpolated here-strings** (`@"..."@`) or `Set-Content` with interpolation
+to write code or Markdown. Backtick is escape and `$` is interpolation in PowerShell — this
+**has already destroyed** `otp-rate-limit.ts` and `DEPLOY-DOKPLOY.md`. Use literal here-strings
+(`@'...'@`), bash heredocs (`<<'EOF'`), or the agent's file-writing tools. After writing,
+validate: `grep -nP '[\x00-\x08\x0B\x0C\x0E-\x1F]' FILE`

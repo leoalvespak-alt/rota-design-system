@@ -28,3 +28,11 @@ Regras obrigatorias para agentes:
 - Para qualquer mudanca de infra ou deploy, consulte `Docs/DEPLOY-DOKPLOY.md` antes de agir.
 - O CI/CD e via `.github/workflows/dokploy-ci.yml` — push no branch ativo dispara rebuild automatico.
 - Commits de correcao de build devem mencionar o erro corrigido na mensagem.
+
+## Seguranca de escrita de arquivos
+
+**Nunca use here-string interpolado do PowerShell** (`@"..."@`) nem `Set-Content` com interpolacao
+para gravar codigo ou Markdown. A crase e escape e `$` e interpolacao no PowerShell — isso
+**ja destruiu** `otp-rate-limit.ts` e `DEPLOY-DOKPLOY.md`. Use here-string literal (`@'...'@`),
+heredoc do bash (`<<'EOF'`) ou as ferramentas de escrita do agente. Depois de gravar, valide:
+`grep -nP '[\x00-\x08\x0B\x0C\x0E-\x1F]' ARQUIVO`
