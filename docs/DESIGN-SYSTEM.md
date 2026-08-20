@@ -114,3 +114,15 @@ API passaram; PostgreSQL e Redis permaneceram saudáveis e o ledger continuou
 com as cinco migrations `0000`–`0004`. A tela pública de acesso carregou o novo
 asset versionado sem erros de console. A stack editorial legada foi preservada,
 pois sua remoção continua fora do escopo e exige uma janela destrutiva própria.
+
+## 12. Consolidação do banco em 20/08/2026
+
+A VPS foi reinstalada em 20/08/2026 (Dokploy novo) e os volumes Docker anteriores,
+incluindo o Postgres do Design System, se perderam. Na mesma data o banco do Design
+System (`rota_design`, dump de 19/08) foi restaurado como schema **`design`** dentro
+do Postgres do Prospector (`db_prospector_postgresql`), concluindo a Etapa 1 do plano
+de operação orgânica: 51 tabelas em `design.*`, teses doutrinárias semeadas em
+`design.editorial_theses` (7, ativas) e a view `theses_from_design` expondo o contrato
+para o Prospector. Quando a API do Design System voltar ao ar, o `DATABASE_URL` deve
+apontar para esse Postgres com `search_path=design,public` — não existe mais um
+Postgres separado para o Design System.
