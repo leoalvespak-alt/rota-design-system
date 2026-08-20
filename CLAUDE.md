@@ -1,51 +1,58 @@
-# Instruções para agentes
+@C:\Users\Lenovo\.codex\RTK.md
 
-## Uso de RTK e Codegraph
+# Language policy
 
-Este projeto usa RTK para reduzir a saída do terminal e CodeGraph para navegar pelas dependências de código com contexto dirigido.
+The user is Brazilian (pt-BR).
 
-Antes de executar uma tarefa grande, primeiro consulte CodeGraph ou rode `npm run context:check` quando aplicável. Se o grafo ou os artefatos de contexto estiverem desatualizados, rode `npm run context:update` antes de continuar. Para tarefas pequenas e claramente localizadas, não gaste tokens nem tempo com atualização desnecessária.
+| Content type | Language |
+|---|---|
+| Conversation, summaries, recommendations, reports | **pt-BR** |
+| Code, CLI output, commit messages, filenames | **English** |
+| Config files, frontmatter, one-line descriptions | **English** |
 
-- Antes de tarefas grandes, verifique se RTK e CodeGraph estão atualizados com `npm run context:check`.
-- Após mudanças estruturais em vários módulos, schema, tipos globais, pastas, muitas criações/remoções de arquivos ou dependências principais, execute `npm run context:update`.
-- Use CodeGraph para entender dependências entre módulos e impacto antes de refatorar. Não varra o projeto inteiro quando `codegraph explore` puder indicar os arquivos relevantes; prefira leituras dirigidas.
-- Depois de uma refatoração grande, execute `npm run codegraph:update`. Se CodeGraph parecer inconsistente com o código atual, execute o mesmo comando novamente.
-- Depois de mudanças em comandos, testes, builds ou logs, execute `npm run rtk:update` para reaplicar e verificar as instruções locais do RTK.
-- Em tarefas pequenas e isoladas, use apenas os arquivos e comandos diretamente relevantes; não rode ferramentas extras sem necessidade.
+When in doubt: content the user will read → pt-BR; content tools and AI will consume → English.
 
-Quando comandos de teste, lint, build ou typecheck gerarem saída grande, use RTK ou filtros equivalentes para mostrar apenas os trechos relevantes. Se o erro não ficar claro, repita o comando com saída mais ampla, mas ainda limitada.
+# Documentation policy
 
-- Prefixe comandos verbosos compatíveis com `rtk`, por exemplo `rtk npm run lint`, `rtk vitest run` e `rtk git status`.
-- No Windows, cmdlets nativos do PowerShell não são executáveis do `PATH`; use `rtk proxy <comando>` quando precisar encaminhá-los sem filtragem.
-- Não cole logs inteiros quando RTK puder resumir ou filtrar a saída. Se o filtro ocultar informação importante, repita o comando com `rtk proxy <comando>` ou com um filtro menos restritivo.
+Before analyzing, planning, or modifying code, consult the project's documentation:
+- Look for `Docs/README.md` or equivalent index
+- Read the domain-specific docs relevant to your change
+- Do not treat prompts, audits, or historical plans as current state without cross-checking against the actual code and configuration
 
-### Comandos
+After any change that affects behavior, architecture, HTTP contracts, database, auth, operations, deploy, configuration, or user flows, update the relevant canonical docs in the same work unit. Final documentation must describe the actually implemented state, record pending limitations/gates, and never expose secrets, tokens, cookies, emails, or other personal data.
 
-```bash
-npm run context:check      # verifica RTK e a integridade/frescor do índice
-npm run context:update     # reaplica RTK e atualiza o grafo incrementalmente
-npm run context:refresh    # atalho seguro e idempotente para context:update
-npm run codegraph:update   # sincroniza o grafo; reindexa se a versão exigir
-npm run rtk:update         # restaura/verifica a integração local do RTK
-```
+Before concluding:
+1. Diff your code changes against the domain docs
+2. Remove or correct statements that became obsolete
+3. Add links to the docs index when a new canonical document is created
+4. Report which docs were consulted and updated
+5. If no doc update is needed, explicitly state why
 
-CodeGraph acompanha alterações enquanto a sessão do agente está ativa. Os comandos acima continuam necessários depois de alterações grandes, mudanças feitas fora da sessão, troca/atualização da ferramenta ou quando `context:check` indicar pendências.
+# CodeGraph
 
-## Contexto, RTK, Codegraph e documentação curta
+In repositories with `.codegraph/`, use CodeGraph before textual search to locate and understand code. For documentation and known filenames, start from the docs index.
 
-- Antes de tarefas grandes, consulte `docs/architecture/README.md` e leia apenas o documento do módulo relacionado.
-- Use CodeGraph para confirmar dependências antes de refatorações ou alterações em múltiplos módulos.
-- Use RTK ou filtros equivalentes para reduzir a saída de logs, testes, lint, build e typecheck.
-- Execute `npm run context:check` antes de tarefas grandes e `npm run context:update` depois de mudanças estruturais, refatorações grandes ou alterações em vários módulos.
-- Atualize o documento de arquitetura correspondente quando mudar fluxo, arquivos principais ou dependências internas.
-- Não varra o projeto inteiro se a documentação curta e CodeGraph já apontarem o módulo correto. Em tarefas pequenas, não use ferramentas extras sem necessidade.
-- Se RTK ocultar um erro importante, repita o comando com saída mais ampla e ainda limitada. Se CodeGraph parecer inconsistente, execute `npm run codegraph:update`.
+# Security
 
-```bash
-npm run docs:architecture:check
-npm run docs:architecture:update
-```
+- Never commit secrets, tokens, API keys, passwords, or credentials
+- Never expose personal data (emails, names, addresses) in code or docs
+- Sanitize all user input at system boundaries
+- Use parameterized queries for database access
 
-## Localização no monorepo
+# Conventions
 
-Este app agora vive dentro do monorepo `plataforma/`; siga instruções globais em `../../CLAUDE.md`.
+- Prefer editing existing files over creating new ones
+- Keep changes minimal and focused on the task
+- Write tests for new functionality when the project has a test suite
+- Follow existing code patterns and naming conventions in the project
+
+# Deploy
+
+This workspace (Sistema de Design / Plataforma) is deployed via **Dokploy** on the shared VPS.
+See `Docs/DEPLOY-DOKPLOY.md` for the full deployment guide covering all three projects (Prospector, Gazeta, Design System).
+
+Key rules:
+- Never add `env_file` to docker-compose.yml — Dokploy deletes the folder before each deploy and injects env vars directly via its panel.
+- The **Build Path** field in Dokploy Application accepts a *directory*, not a filename. Use `/` (root), not `/Dockerfile`.
+- For infrastructure changes, consult `Docs/DEPLOY-DOKPLOY.md` first.
+- CI/CD is via `.github/workflows/dokploy-ci.yml` — pushes to the active branch trigger automatic deploys.

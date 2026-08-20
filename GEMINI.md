@@ -5,3 +5,5 @@ You MUST read `CLAUDE.md` entirely before executing any commands, creating files
 Before modifying code, consult the project's documentation in the `Docs/` folder. After changes, update the relevant docs in the same work unit.
 
 Always reply to the user in **pt-BR (Brazilian Portuguese)**.
+
+For deploy and infrastructure questions, consult `Docs/DEPLOY-DOKPLOY.md`. The three projects (Prospector, Gazeta, Design System) are deployed via Dokploy on VPS `187.127.249.22:3000`.
