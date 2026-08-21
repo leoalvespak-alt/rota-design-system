@@ -52,45 +52,55 @@ In repositories with `.codegraph/`, use CodeGraph before textual search to locat
 
 ## Mapa de repositórios e projetos
 
-| Projeto | URL | Repositório Git | Ação para deploy |
+| Projeto | URL | Repositório Git | Como fazer deploy |
 |---|---|---|---|
-| Design System (web + API) | design.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
-| Prospector | design.rotadeataque.com.br/prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
-| Plataforma 2.0 | app.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` |
+| Design System (web + API) | design.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-plataforma` | **PR → merge em `main`** (branch protection) |
+| Prospector | design.rotadeataque.com.br/prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | **PR → merge em `main`** (branch protection) |
+| Plataforma 2.0 | app.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` direto |
 | Gazeta | (URL própria) | repo Gazeta | push → Dokploy webhook |
 
-## O que acontece após o push
+## O que acontece após o merge/push
 
 **Design System / Prospector** (`rota-de-ataque-plataforma`):
-1. GitHub Actions builda imagem Docker → sobe para GHCR
-2. CI faz SSH na VPS e executa `/opt/rota-deploy/deploy.sh`
-3. Deploy concluído — sem PR, sem clique manual
+- Requer PR com 2 status checks obrigatórios antes do merge
+- Após merge em `main`: CI builda imagem Docker → GHCR → SSH deploy na VPS
 
 **Plataforma 2.0** (`rota-de-ataque-v2`):
-1. GitHub Actions inicia build Docker diretamente na VPS (via nohup — evita OOM no runner)
-2. VPS sobe imagem para GHCR
-3. CI faz SSH e executa `/opt/rota-deploy/deploy.sh plataforma`
-4. Dokploy puxa a imagem GHCR e reinicia o container
+- Push direto em `main` funciona (sem branch protection)
+- CI inicia build na própria VPS (nohup — evita OOM no runner) → GHCR → Dokploy pull
 
-## Se o agente fez alterações no código
+## Fluxo por repositório
+
+### rota-de-ataque-plataforma (Design System + Prospector)
 
 ```bash
-# 1. Confirmar em qual repositório está (olhar o remote):
-git remote -v
+# 1. Criar branch a partir de main:
+git checkout main && git pull origin main
+git checkout -b fix/minha-correcao
 
-# 2. Commit e push direto para main (SEM criar branch, SEM abrir PR):
-git add -p          # ou git add <arquivos específicos>
-git commit -m "fix: descrição do que mudou"
-git push origin main
+# 2. Commitar as mudanças:
+git add <arquivos>
+git commit -m "fix: descrição"
+git push origin fix/minha-correcao
 
-# 3. Aguardar o CI — GitHub Actions cuida do deploy automaticamente.
-#    Monitorar em: https://github.com/leoalvespak-alt/<repo>/actions
+# 3. Abrir PR via gh ou GitHub:
+gh pr create --base main --title "fix: descrição"
+
+# 4. Aguardar status checks passarem → merge → deploy automático.
+#    Monitorar: https://github.com/leoalvespak-alt/rota-de-ataque-plataforma/actions
 ```
 
-**NUNCA fazer:** `git push origin feature-branch` e esperar PR — isso NÃO faz deploy.
-**SEMPRE fazer:** commit e push direto em `main`.
+### rota-de-ataque-v2 (Plataforma 2.0)
 
-## Deploy manual via SSH (para reimplantar sem novo código)
+```bash
+# Push direto em main — sem PR necessário:
+git add <arquivos>
+git commit -m "fix: descrição"
+git push origin main
+# Monitorar: https://github.com/leoalvespak-alt/rota-de-ataque-v2/actions
+```
+
+## Deploy manual via SSH (reimplantar sem novo código)
 
 ```bash
 ssh root@187.127.249.22 '/opt/rota-deploy/deploy.sh <project>'
@@ -99,7 +109,7 @@ ssh root@187.127.249.22 '/opt/rota-deploy/deploy.sh <project>'
 
 ## Regras
 
-- Push para `main` dispara CI + deploy automático — sem cliques no Dokploy
+- Merge em `main` dispara CI + deploy automático — sem cliques no Dokploy
 - Nunca adicionar `env_file` no docker-compose.yml (gerenciado pelo Dokploy)
 - Manter apenas 1 imagem anterior por projeto na VPS para rollback
 - Para mudanças de infraestrutura, consultar `Docs/DEPLOY-DOKPLOY.md`

@@ -22,31 +22,42 @@ Em repositorios com `.codegraph/`, use CodeGraph antes de busca textual para loc
 
 **NUNCA e necessario abrir PR para fazer deploy. Push direto para `main` e o deploy.**
 
-### Mapa de repositorios — qual push faz o deploy de qual projeto
+### Mapa de repositorios — como deployar cada projeto
 
-| Projeto | URL | Repositorio | Acao |
+| Projeto | URL | Repositorio | Como deployar |
 |---|---|---|---|
-| Design System (web + API) | design.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
-| Prospector | design.rotadeataque.com.br/prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
-| Plataforma 2.0 | app.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` |
-| Gazeta | (URL propria) | repo Gazeta | `git push origin main` |
+| Design System (web + API) | design.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-plataforma` | **PR → merge em `main`** (branch protection) |
+| Prospector | design.rotadeataque.com.br/prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | **PR → merge em `main`** (branch protection) |
+| Plataforma 2.0 | app.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` direto |
+| Gazeta | (URL propria) | repo Gazeta | `git push origin main` direto |
 
-### Como fazer deploy apos alteracoes de codigo
+### rota-de-ataque-plataforma — Design System + Prospector
+
+Branch protection com 2 status checks obrigatorios. Nao e possivel push direto em `main`.
 
 ```bash
-# Confirme o repositorio (remote) antes de tudo:
-git remote -v
+git checkout main && git pull origin main
+git checkout -b fix/minha-correcao
+git add <arquivos>
+git commit -m "fix: descricao"
+git push origin fix/minha-correcao
+gh pr create --base main --title "fix: descricao"
+# Apos status checks passarem e merge: CI dispara deploy automaticamente
+# Acompanhe: https://github.com/leoalvespak-alt/rota-de-ataque-plataforma/actions
+```
 
-# Commit e push DIRETAMENTE em main — sem branch, sem PR:
+### rota-de-ataque-v2 — Plataforma 2.0
+
+Sem branch protection. Push direto em `main` dispara CI e deploy.
+
+```bash
 git add <arquivos>
 git commit -m "fix: descricao"
 git push origin main
-
-# GitHub Actions cuida de todo o resto automaticamente.
-# Acompanhe em: https://github.com/leoalvespak-alt/<repo>/actions
+# Acompanhe: https://github.com/leoalvespak-alt/rota-de-ataque-v2/actions
 ```
 
-O que acontece apos o push:
+O que acontece apos o merge/push:
 - **Design System / Prospector**: CI builda imagem Docker → GHCR → SSH deploy na VPS
 - **Plataforma 2.0**: CI inicia build na propria VPS (evita OOM no runner) → GHCR → Dokploy pull
 
