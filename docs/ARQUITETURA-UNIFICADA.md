@@ -140,7 +140,7 @@ Também em 21/08/2026 (código implementado, **deploy em andamento**):
 
 - **Roteamento URL real no Design System:** `react-router-dom@7` instalado; 15 rotas via `createBrowserRouter`; deep-link e botão voltar do browser funcionando. Sub-abas `/teses/*` são rotas aninhadas com `NavLink`. SPA fallback configurado no nginx (`nginx.conf` + `Dockerfile.web`). `useRouteSync` mantém Zustand sincronizado com a URL.
 - **Migration 0032 `unified_creatives`:** tabela canônica que consolida `scheduled_publications` + `editorial_plan_items`/`content_items`. Views de compatibilidade criadas. **Pendente de aplicação na VPS:** `pnpm db:migrate`.
-- **Gate de produção:** Etapa 3 (APIs apontando para `unified_creatives`) não foi implementada — as APIs de ambos os apps continuam lendo/escrevendo nas tabelas originais.
+- **APIs unificadas (Etapas 3 e 4 implementadas):** A rota `/api/publications` do Design System foi reescrita para ler e salvar diretamente em `unified_creatives` (incluindo POST e PATCH). O componente `CalendarView` agora suporta um form interativo `CreativeForm`. No Prospector, a API `/api/admin/publications` também foi atualizada para fazer INSERT/UPDATE direto na tabela unificada (e não mais em `scheduled_publications`), consolidando de vez as operações de ambos os aplicativos sobre os criativos orgânicos.
 
 ## 8. Regras de evolução
 
