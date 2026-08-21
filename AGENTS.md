@@ -18,16 +18,50 @@ Antes de concluir:
 
 Em repositorios com `.codegraph/`, use CodeGraph antes de busca textual para localizar e compreender codigo. Para documentacao e nomes de arquivos conhecidos, comece pelo indice `Docs/README.md`.
 
-## Deploy (Dokploy)
+## Deploy
 
-Os tres projetos (Prospector, Gazeta, Design System) sao servidos via **Dokploy** na VPS `187.127.249.22:3000`.
+**NUNCA e necessario abrir PR para fazer deploy. Push direto para `main` e o deploy.**
 
-Regras obrigatorias para agentes:
-- **Nunca adicionar `env_file` no docker-compose.yml** — o Dokploy apaga a pasta inteira antes de cada deploy e injeta variaveis diretamente pelo painel.
-- **Build Path no Dokploy Application deve ser `/`** (diretorio raiz) — nao o nome do arquivo Dockerfile.
-- Para qualquer mudanca de infra ou deploy, consulte `Docs/DEPLOY-DOKPLOY.md` antes de agir.
-- O CI/CD e via `.github/workflows/dokploy-ci.yml` — push no branch ativo dispara rebuild automatico.
-- Commits de correcao de build devem mencionar o erro corrigido na mensagem.
+### Mapa de repositorios — qual push faz o deploy de qual projeto
+
+| Projeto | URL | Repositorio | Acao |
+|---|---|---|---|
+| Design System (web + API) | design.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
+| Prospector | design.rotadeataque.com.br/prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
+| Plataforma 2.0 | app.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` |
+| Gazeta | (URL propria) | repo Gazeta | `git push origin main` |
+
+### Como fazer deploy apos alteracoes de codigo
+
+```bash
+# Confirme o repositorio (remote) antes de tudo:
+git remote -v
+
+# Commit e push DIRETAMENTE em main — sem branch, sem PR:
+git add <arquivos>
+git commit -m "fix: descricao"
+git push origin main
+
+# GitHub Actions cuida de todo o resto automaticamente.
+# Acompanhe em: https://github.com/leoalvespak-alt/<repo>/actions
+```
+
+O que acontece apos o push:
+- **Design System / Prospector**: CI builda imagem Docker → GHCR → SSH deploy na VPS
+- **Plataforma 2.0**: CI inicia build na propria VPS (evita OOM no runner) → GHCR → Dokploy pull
+
+### Deploy manual via SSH (reimplantar sem novo codigo)
+
+```bash
+ssh root@187.127.249.22 '/opt/rota-deploy/deploy.sh <project>'
+# Projetos: design-web, design-api, prospector, gazeta, plataforma, all, status, cleanup
+```
+
+Regras:
+- Push para `main` dispara CI + deploy automatico — nao precisa clicar em nada no Dokploy
+- Nunca adicionar `env_file` no docker-compose.yml (compose gerenciado pelo Dokploy)
+- O script de deploy da VPS cuida de: pull de imagem, restart, migrations, health check, limpeza de imagens antigas
+- Manter apenas 1 imagem anterior por projeto na VPS para rollback
 
 ## Seguranca de escrita de arquivos
 

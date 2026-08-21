@@ -48,14 +48,61 @@ In repositories with `.codegraph/`, use CodeGraph before textual search to locat
 
 # Deploy
 
-This workspace (Sistema de Design / Plataforma) is deployed via **Dokploy** on the shared VPS.
-See `Docs/DEPLOY-DOKPLOY.md` for the full deployment guide covering all three projects (Prospector, Gazeta, Design System).
+**Regra fundamental: NUNCA é necessário abrir PR para fazer deploy. Basta fazer `git push origin main` no repositório correto. O CI/CD cuida do resto automaticamente.**
 
-Key rules:
-- Never add `env_file` to docker-compose.yml — Dokploy deletes the folder before each deploy and injects env vars directly via its panel.
-- The **Build Path** field in Dokploy Application accepts a *directory*, not a filename. Use `/` (root), not `/Dockerfile`.
-- For infrastructure changes, consult `Docs/DEPLOY-DOKPLOY.md` first.
-- CI/CD is via `.github/workflows/dokploy-ci.yml` — pushes to the active branch trigger automatic deploys.
+## Mapa de repositórios e projetos
+
+| Projeto | URL | Repositório Git | Ação para deploy |
+|---|---|---|---|
+| Design System (web + API) | design.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
+| Prospector | design.rotadeataque.com.br/prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
+| Plataforma 2.0 | app.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` |
+| Gazeta | (URL própria) | repo Gazeta | push → Dokploy webhook |
+
+## O que acontece após o push
+
+**Design System / Prospector** (`rota-de-ataque-plataforma`):
+1. GitHub Actions builda imagem Docker → sobe para GHCR
+2. CI faz SSH na VPS e executa `/opt/rota-deploy/deploy.sh`
+3. Deploy concluído — sem PR, sem clique manual
+
+**Plataforma 2.0** (`rota-de-ataque-v2`):
+1. GitHub Actions inicia build Docker diretamente na VPS (via nohup — evita OOM no runner)
+2. VPS sobe imagem para GHCR
+3. CI faz SSH e executa `/opt/rota-deploy/deploy.sh plataforma`
+4. Dokploy puxa a imagem GHCR e reinicia o container
+
+## Se o agente fez alterações no código
+
+```bash
+# 1. Confirmar em qual repositório está (olhar o remote):
+git remote -v
+
+# 2. Commit e push direto para main (SEM criar branch, SEM abrir PR):
+git add -p          # ou git add <arquivos específicos>
+git commit -m "fix: descrição do que mudou"
+git push origin main
+
+# 3. Aguardar o CI — GitHub Actions cuida do deploy automaticamente.
+#    Monitorar em: https://github.com/leoalvespak-alt/<repo>/actions
+```
+
+**NUNCA fazer:** `git push origin feature-branch` e esperar PR — isso NÃO faz deploy.
+**SEMPRE fazer:** commit e push direto em `main`.
+
+## Deploy manual via SSH (para reimplantar sem novo código)
+
+```bash
+ssh root@187.127.249.22 '/opt/rota-deploy/deploy.sh <project>'
+# Projetos: design-web, design-api, prospector, gazeta, plataforma, all, status, cleanup
+```
+
+## Regras
+
+- Push para `main` dispara CI + deploy automático — sem cliques no Dokploy
+- Nunca adicionar `env_file` no docker-compose.yml (gerenciado pelo Dokploy)
+- Manter apenas 1 imagem anterior por projeto na VPS para rollback
+- Para mudanças de infraestrutura, consultar `Docs/DEPLOY-DOKPLOY.md`
 
 # File writing safety
 

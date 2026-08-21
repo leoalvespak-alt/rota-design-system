@@ -6,7 +6,26 @@ Before modifying code, consult the project's documentation in the `Docs/` folder
 
 Always reply to the user in **pt-BR (Brazilian Portuguese)**.
 
-For deploy and infrastructure questions, consult `Docs/DEPLOY-DOKPLOY.md`. The three projects (Prospector, Gazeta, Design System) are deployed via Dokploy on VPS `187.127.249.22:3100`.
+For deploy and infrastructure questions, consult `plataforma/deploy/DEPLOY.md`.
+
+## Deploy — regra fundamental
+
+**NUNCA é necessario abrir PR para fazer deploy. O push direto para `main` e suficiente.**
+
+### Mapa de repositorios
+
+| Projeto | Repositorio | O que fazer |
+|---|---|---|
+| Design System + Prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
+| Plataforma 2.0 | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` |
+| Gazeta | repo Gazeta | `git push origin main` |
+
+Apos o push, GitHub Actions builda a imagem Docker, sobe para GHCR e faz SSH deploy na VPS — tudo automatico, sem cliques no Dokploy.
+
+Verifique o andamento em: `https://github.com/leoalvespak-alt/<repo>/actions`
+
+Via SSH (reimplantar sem novo codigo): `ssh root@187.127.249.22 '/opt/rota-deploy/deploy.sh <project>'`
+Projetos: design-web, design-api, prospector, gazeta, plataforma, all, status, cleanup.
 
 # File writing safety
 
