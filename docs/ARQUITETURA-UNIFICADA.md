@@ -54,7 +54,7 @@ O sistema de operação orgânica consolida os dois bancos Postgres sob um únic
 - **Identidade visual e edição:** registro de templates, tokens e documentos de projeto do Design System.
 - **Campanhas, leads, decisões e resultados:** banco do Prospector.
 - **Jobs do Prospector:** BullMQ/Redis, com fatos duráveis no PostgreSQL.
-- **Criativos (alvo):** tabela `unified_creatives` (migration 0032, pendente de aplicação na VPS). Views `scheduled_publications_compat` e `content_items_compat` mantêm compatibilidade retroativa. Enquanto a migration não é aplicada, `scheduled_publications` e `content_items` continuam como fontes de leitura/escrita das APIs.
+- **Criativos:** tabela `unified_creatives` (migration 0032) é a fonte canônica. Views `scheduled_publications_compat` e `content_items_compat` mantêm compatibilidade retroativa. APIs de ambos os apps (Design System Hono e Prospector Next.js) leem e escrevem diretamente em `unified_creatives`. Migration 0033 adiciona mapeamento `prospector_thesis_id` em `editorial_theses` e trigger de auditoria para status `published`. Pendente de `pnpm db:migrate` na VPS.
 - **Configuração implantada:** `.env` preservado no VPS, compose e release ativa.
 
 Não há transação distribuída entre os produtos. IDs externos e referências do bridge devem ser persistidos para correlação; uma exportação local não implica publicação, e uma oportunidade no Prospector não implica que um arquivo tenha sido gerado.
@@ -140,7 +140,9 @@ Também em 21/08/2026 (código implementado, **deploy em andamento**):
 
 - **Roteamento URL real no Design System:** `react-router-dom@7` instalado; 15 rotas via `createBrowserRouter`; deep-link e botão voltar do browser funcionando. Sub-abas `/teses/*` são rotas aninhadas com `NavLink`. SPA fallback configurado no nginx (`nginx.conf` + `Dockerfile.web`). `useRouteSync` mantém Zustand sincronizado com a URL.
 - **Migration 0032 `unified_creatives`:** tabela canônica que consolida `scheduled_publications` + `editorial_plan_items`/`content_items`. Views de compatibilidade criadas. **Pendente de aplicação na VPS:** `pnpm db:migrate`.
-- **APIs unificadas (Etapas 3 e 4 implementadas):** A rota `/api/publications` do Design System foi reescrita para ler e salvar diretamente em `unified_creatives` (incluindo POST e PATCH). O componente `CalendarView` agora suporta um form interativo `CreativeForm`. No Prospector, a API `/api/admin/publications` também foi atualizada para fazer INSERT/UPDATE direto na tabela unificada (e não mais em `scheduled_publications`), consolidando de vez as operações de ambos os aplicativos sobre os criativos orgânicos.
+- **Migration 0033 `thesis_mapping`:** adiciona `prospector_thesis_id` a `editorial_theses`; trigger `audit_creative_published` loga no `audit_log` quando status muda para `published`. **Pendente de aplicação na VPS.**
+- **APIs unificadas (Etapas 3-4):** A rota `/api/publications` do Design System foi reescrita para ler e salvar diretamente em `unified_creatives` (GET com filtros, POST, PATCH, DELETE). O `CalendarView` suporta criação/edição interativa via `CreativeForm`. No Prospector, a API `/api/admin/publications` também usa `unified_creatives` com transações e auditoria.
+- **Sincronização de teses (Etapa 5):** Endpoint `POST /api/theses/sync` permite sincronizar uma tese do Prospector para `editorial_theses` com mapeamento por `prospector_thesis_id`. Schema Drizzle atualizado.
 
 ## 8. Regras de evolução
 

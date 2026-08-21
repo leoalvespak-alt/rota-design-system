@@ -205,5 +205,31 @@ o histórico de artes é localStorage do navegador.
 
 **Pendente de execução:** `pnpm db:migrate` (ou equivalente) na VPS — a migration não foi aplicada automaticamente nesta sessão.
 
-**Gate de produção:** a Etapa 3 (APIs apontando para `unified_creatives`) não foi implementada — `scheduled_publications` e `content_items` originais continuam sendo a fonte de leitura/escrita das APIs de ambos os apps.
+### APIs apontando para tabela unificada (Etapa 3)
+
+- `src/server/api/routes/publications.ts`: refatorado para ler/escrever em `unified_creatives`. Endpoints: `GET /` (com filtros `channel`, `status`, `origin`), `GET /batch/:batchId`, `POST /` (criar criativo), `PATCH /:id` (atualização dinâmica de campos incluindo `origin`), `DELETE /:id`.
+- `apps/web/src/app/api/admin/publications/route.ts`: migrado para usar `unified_creatives` com transações, auditoria e validação de transição de status.
+- Creative Bridge continua usando `creative_bridge_deliveries` como log; o criativo canônico vive em `unified_creatives`.
+
+### CalendarView com dados unificados (Etapa 4)
+
+- `src/features/editorial/calendar/CalendarView.tsx`: exibe criativos da tabela unificada agrupados por canal, com badges de origem e status. Botão "Novo Criativo" e click-to-edit por card.
+- `src/features/editorial/calendar/CreativeForm.tsx` (novo): formulário de criação/edição com campos título, canal, formato (select com valores válidos: carrossel/reels/static/stories), status, agendamento e legenda. Salva via `POST/PATCH /api/publications`.
+
+### Sincronização bidirecional de teses (Etapa 5)
+
+- `packages/db/migrations/0033_thesis_mapping.up.sql`: adiciona `prospector_thesis_id` a `editorial_theses`; cria trigger `audit_creative_published` que loga no `audit_log` quando um criativo muda para status `published`.
+- `packages/db/migrations/0033_thesis_mapping.down.sql`: rollback.
+- `src/server/api/routes/theses.ts`: endpoint `POST /theses/sync` que recebe `prospector_thesis_id`, busca na tabela `theses` do Prospector (mesmo banco), e cria/atualiza em `editorial_theses` com mapeamento bidirecional (usando `core_statement`, `summary`, `slug`).
+- `src/db/editorial-schema.ts`: `prospectorThesisId` adicionado ao schema Drizzle.
+
+### Correções aplicadas na auditoria (21/08/2026)
+
+- `POST /theses/sync`: corrigido para usar colunas reais (`summary`, `core_statement` em vez de `description`, `author`); slug com 8 chars do UUID para menos colisão; fix do retorno de `db.execute()`.
+- `useRouteSync`: corrigido loop infinito — guard `syncingFromRoute` evita que mudança de rota chame `navigate()` recursivamente.
+- `publications.ts PATCH`: adicionado campo `origin` às atualizações dinâmicas; fix de `scheduled_for` null usando `sql\`NULL\`` em vez de raw null.
+- `CreativeForm`: formato padrão alterado de `'post'` para `'carrossel'`; campo formato trocado de input texto livre para select com valores válidos.
+- `EditorialView.tsx` (dead code) removido — substituído por `EditorialLayout.tsx`.
+
+**Pendente de execução na VPS:** `pnpm db:migrate` para aplicar migrations 0032 e 0033. Após aplicação, verificar: criação de criativos no Design System aparecendo no Prospector; deep-link `/teses/calendario`; botão voltar do browser.
 
