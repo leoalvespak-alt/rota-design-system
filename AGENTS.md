@@ -22,39 +22,29 @@ Em repositorios com `.codegraph/`, use CodeGraph antes de busca textual para loc
 
 **NUNCA e necessario abrir PR para fazer deploy. Push direto para `main` e o deploy.**
 
-### Mapa de repositorios — como deployar cada projeto
+### Mapa de repositorios — qual push faz o deploy de qual projeto
 
-| Projeto | URL | Repositorio | Como deployar |
+| Projeto | URL | Repositorio | Acao |
 |---|---|---|---|
-| Design System (web + API) | design.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-plataforma` | **PR → merge em `main`** (branch protection) |
-| Prospector | design.rotadeataque.com.br/prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | **PR → merge em `main`** (branch protection) |
-| Plataforma 2.0 | app.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` direto |
-| Gazeta | (URL propria) | repo Gazeta | `git push origin main` direto |
+| Design System (web + API) | design.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
+| Prospector | design.rotadeataque.com.br/prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
+| Plataforma 2.0 | app.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` |
+| Gazeta | (URL propria) | repo Gazeta | `git push origin main` |
 
-### rota-de-ataque-plataforma — Design System + Prospector
-
-Branch protection com 2 status checks obrigatorios. Nao e possivel push direto em `main`.
+### Como fazer deploy apos alteracoes de codigo
 
 ```bash
-git checkout main && git pull origin main
-git checkout -b fix/minha-correcao
-git add <arquivos>
-git commit -m "fix: descricao"
-git push origin fix/minha-correcao
-gh pr create --base main --title "fix: descricao"
-# Apos status checks passarem e merge: CI dispara deploy automaticamente
-# Acompanhe: https://github.com/leoalvespak-alt/rota-de-ataque-plataforma/actions
-```
+# Confirme o repositorio antes de tudo:
+git remote -v
 
-### rota-de-ataque-v2 — Plataforma 2.0
-
-Sem branch protection. Push direto em `main` dispara CI e deploy.
-
-```bash
+# Commit e push direto em main — sem PR, sem branch intermediaria:
 git add <arquivos>
 git commit -m "fix: descricao"
 git push origin main
-# Acompanhe: https://github.com/leoalvespak-alt/rota-de-ataque-v2/actions
+
+# Monitorar CI:
+# Design System/Prospector: https://github.com/leoalvespak-alt/rota-de-ataque-plataforma/actions
+# Plataforma 2.0:           https://github.com/leoalvespak-alt/rota-de-ataque-v2/actions
 ```
 
 O que acontece apos o merge/push:

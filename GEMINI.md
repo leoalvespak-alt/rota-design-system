@@ -8,31 +8,21 @@ Always reply to the user in **pt-BR (Brazilian Portuguese)**.
 
 For deploy and infrastructure questions, consult `plataforma/deploy/DEPLOY.md`.
 
-## Deploy — fluxo por repositorio
+## Deploy — regra fundamental
 
-### rota-de-ataque-plataforma (Design System + Prospector)
+Push direto para `main` e suficiente em todos os repositorios — sem PR necessario.
 
-**Branch protection ativa — obrigatorio abrir PR para alterar `main`.**
+| Projeto | Repositorio | Acao |
+|---|---|---|
+| Design System + Prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
+| Plataforma 2.0 | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` |
+| Gazeta | repo Gazeta | `git push origin main` |
 
-```
-git checkout -b fix/minha-correcao
-git commit -m "fix: ..."
-git push origin fix/minha-correcao
-gh pr create --base main
-# Apos merge: CI dispara deploy automatico
-```
+Apos o push, GitHub Actions builda a imagem Docker, sobe para GHCR e faz SSH deploy na VPS — tudo automatico, sem cliques no Dokploy.
 
-### rota-de-ataque-v2 (Plataforma 2.0)
+- Design System/Prospector: `https://github.com/leoalvespak-alt/rota-de-ataque-plataforma/actions`
+- Plataforma 2.0: `https://github.com/leoalvespak-alt/rota-de-ataque-v2/actions`
 
-**Sem branch protection — push direto em `main` funciona.**
-
-```
-git commit -m "fix: ..."
-git push origin main
-# CI dispara deploy automatico
-```
-
-Acompanhe o andamento em `https://github.com/leoalvespak-alt/<repo>/actions`.
 Via SSH (reimplantar sem novo codigo): `ssh root@187.127.249.22 '/opt/rota-deploy/deploy.sh <project>'`
 Projetos: design-web, design-api, prospector, gazeta, plataforma, all, status, cleanup.
 

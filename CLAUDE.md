@@ -52,52 +52,39 @@ In repositories with `.codegraph/`, use CodeGraph before textual search to locat
 
 ## Mapa de repositórios e projetos
 
-| Projeto | URL | Repositório Git | Como fazer deploy |
+| Projeto | URL | Repositório Git | Ação para deploy |
 |---|---|---|---|
-| Design System (web + API) | design.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-plataforma` | **PR → merge em `main`** (branch protection) |
-| Prospector | design.rotadeataque.com.br/prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | **PR → merge em `main`** (branch protection) |
-| Plataforma 2.0 | app.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` direto |
+| Design System (web + API) | design.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
+| Prospector | design.rotadeataque.com.br/prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | `git push origin main` |
+| Plataforma 2.0 | app.rotadeataque.com.br | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` |
 | Gazeta | (URL própria) | repo Gazeta | push → Dokploy webhook |
 
-## O que acontece após o merge/push
+## O que acontece após o push
 
 **Design System / Prospector** (`rota-de-ataque-plataforma`):
-- Requer PR com 2 status checks obrigatórios antes do merge
-- Após merge em `main`: CI builda imagem Docker → GHCR → SSH deploy na VPS
+1. GitHub Actions builda imagem Docker → sobe para GHCR
+2. CI faz SSH na VPS e executa `/opt/rota-deploy/deploy.sh`
+3. Deploy concluído
 
 **Plataforma 2.0** (`rota-de-ataque-v2`):
-- Push direto em `main` funciona (sem branch protection)
-- CI inicia build na própria VPS (nohup — evita OOM no runner) → GHCR → Dokploy pull
+1. CI inicia build na própria VPS (nohup — evita OOM no runner) → GHCR
+2. CI faz SSH e executa `/opt/rota-deploy/deploy.sh plataforma`
+3. Dokploy puxa a imagem GHCR e reinicia o container
 
-## Fluxo por repositório
-
-### rota-de-ataque-plataforma (Design System + Prospector)
-
-```bash
-# 1. Criar branch a partir de main:
-git checkout main && git pull origin main
-git checkout -b fix/minha-correcao
-
-# 2. Commitar as mudanças:
-git add <arquivos>
-git commit -m "fix: descrição"
-git push origin fix/minha-correcao
-
-# 3. Abrir PR via gh ou GitHub:
-gh pr create --base main --title "fix: descrição"
-
-# 4. Aguardar status checks passarem → merge → deploy automático.
-#    Monitorar: https://github.com/leoalvespak-alt/rota-de-ataque-plataforma/actions
-```
-
-### rota-de-ataque-v2 (Plataforma 2.0)
+## Se o agente fez alterações no código
 
 ```bash
-# Push direto em main — sem PR necessário:
+# 1. Confirmar em qual repositório está:
+git remote -v
+
+# 2. Commit e push direto para main — sem PR necessário em nenhum repo:
 git add <arquivos>
 git commit -m "fix: descrição"
 git push origin main
-# Monitorar: https://github.com/leoalvespak-alt/rota-de-ataque-v2/actions
+
+# 3. Monitorar o CI:
+#    Design System/Prospector: https://github.com/leoalvespak-alt/rota-de-ataque-plataforma/actions
+#    Plataforma 2.0:           https://github.com/leoalvespak-alt/rota-de-ataque-v2/actions
 ```
 
 ## Deploy manual via SSH (reimplantar sem novo código)
