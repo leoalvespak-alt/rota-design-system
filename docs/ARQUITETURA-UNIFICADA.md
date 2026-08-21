@@ -54,10 +54,11 @@ O sistema de operação orgânica consolida os dois bancos Postgres sob um únic
 - **Identidade visual e edição:** registro de templates, tokens e documentos de projeto do Design System.
 - **Campanhas, leads, decisões e resultados:** banco do Prospector.
 - **Jobs do Prospector:** BullMQ/Redis, com fatos duráveis no PostgreSQL.
-- **Criativos:** documentos locais em IndexedDB; sessões, ownership, preferências e IA na API/banco próprios do Design System.
+- **Criativos (alvo):** tabela `unified_creatives` (migration 0032, pendente de aplicação na VPS). Views `scheduled_publications_compat` e `content_items_compat` mantêm compatibilidade retroativa. Enquanto a migration não é aplicada, `scheduled_publications` e `content_items` continuam como fontes de leitura/escrita das APIs.
 - **Configuração implantada:** `.env` preservado no VPS, compose e release ativa.
 
 Não há transação distribuída entre os produtos. IDs externos e referências do bridge devem ser persistidos para correlação; uma exportação local não implica publicação, e uma oportunidade no Prospector não implica que um arquivo tenha sido gerado.
+
 
 ## 4. Segurança e governança
 
@@ -119,7 +120,30 @@ sessão, não consulta notificações administrativas como `viewer` e responde
 calendário manual permanece editável por humano e bloqueado contra
 sobrescrita automática; itens nascem como `idea` e não autorizam publicação.
 
+Em 21/08/2026, a integração foi consolidada no banco único:
+
+- **Um Postgres só** (`czj6hb-postgres-1`, pg16): o schema `design` (51 tabelas
+  do Design System, restauradas do dump `rota_design` de 19/08) + `public`
+  (Prospector) + migrations 0001–0030 + teses (7 em `design.editorial_theses`,
+  7 em `public.theses`) + batch de 15 dias (75 agendamentos).
+- **design-api aponta para o banco único**: `DATABASE_URL=...@127.0.0.1:5433/prospector?options=-csearch_path=design,public`
+  (role `design_app`, porta 5433 publicada no compose). A UI do Design System
+  e o Prospector leem o mesmo banco.
+- **Rota `/api/publications`** no design-api: expõe `scheduled_publications`
+  (join com `theses`) para o calendário editorial. A tela Calendário da SPA
+  (antes mock) lista os agendamentos reais agrupados por canal.
+- O banco `rota_design` do host (PostgreSQL nativo em 5432) ficou órfão e
+  permanece como referência histórica; o `rota-design-api` não o usa mais.
+- Postgres antigo `rtlqh5` (pg18) desligado como rollback.
+
+Também em 21/08/2026 (código implementado, **deploy em andamento**):
+
+- **Roteamento URL real no Design System:** `react-router-dom@7` instalado; 15 rotas via `createBrowserRouter`; deep-link e botão voltar do browser funcionando. Sub-abas `/teses/*` são rotas aninhadas com `NavLink`. SPA fallback configurado no nginx (`nginx.conf` + `Dockerfile.web`). `useRouteSync` mantém Zustand sincronizado com a URL.
+- **Migration 0032 `unified_creatives`:** tabela canônica que consolida `scheduled_publications` + `editorial_plan_items`/`content_items`. Views de compatibilidade criadas. **Pendente de aplicação na VPS:** `pnpm db:migrate`.
+- **Gate de produção:** Etapa 3 (APIs apontando para `unified_creatives`) não foi implementada — as APIs de ambos os apps continuam lendo/escrevendo nas tabelas originais.
+
 ## 8. Regras de evolução
+
 
 Ao alterar uma fronteira entre produtos:
 

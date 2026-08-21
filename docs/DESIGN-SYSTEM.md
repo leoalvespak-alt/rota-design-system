@@ -13,7 +13,30 @@ Há dois modos complementares:
 
 ## 2. Interface e estado
 
-`App.tsx` monta providers de tooltip, exportação e sessão de projeto, o listener do Creative Bridge, o shell, diagnósticos e notificações. O shell alterna as áreas funcionais sem roteamento de servidor.
+`main.tsx` monta providers globais (AuthGate, TooltipProvider, ExportNodeProvider, ProjectSessionProvider, CreativeBridgeListener, FeatureDiagnostics, Toaster) e entrega controle ao `RouterProvider` com o roteador criado em `src/app/router.tsx`. O `AppShell` atua como layout-route pai com `<Outlet />`.
+
+Roteamento baseado em URL real (React Router v7 / `createBrowserRouter`):
+
+| URL                 | Componente         |
+|---------------------|--------------------|
+| `/`                 | DashboardView      |
+| `/marca`            | BrandView          |
+| `/ia`               | AIConfigView       |
+| `/renders`          | RendersView        |
+| `/historico`        | HistoryView        |
+| `/criar`            | CreateTab          |
+| `/wizard`           | WizardView         |
+| `/teses`            | ThesesListView     |
+| `/teses/conhecimento` | KnowledgeListView |
+| `/teses/planejador` | PlannerConfigView  |
+| `/teses/lote`       | BatchDashboard     |
+| `/teses/calendario` | CalendarView       |
+| `/teses/revisao`    | ContentReviewView  |
+| `/teses/prompts`    | PromptManagerView  |
+| `/teses/metricas`   | AnalyticsDashboard |
+
+O hook `useRouteSync` mantém `useUiStore.activeTab` sincronizado com a rota (URL → store) e patcha `setTab` para também navegar (store → URL), preservando atalhos de teclado (1-6) e CommandPalette. O `AppHeader` usa `NavLink` para indicar a aba ativa via rota. `EditorialLayout` é o layout aninhado para `/teses/*` com barra de sub-abas via `NavLink`.
+
 
 Principais áreas:
 
@@ -97,14 +120,20 @@ Estado verificado em produção em 13/08/2026: SPA publicada, release imutável 
 
 ## 10. Fontes canônicas executáveis
 
-- Entrada/shell: `plataforma/apps/design-system/src/App.tsx` e `src/app`
-- Editor/templates/stores: `src/features`, `src/stores`, `src/domain`
+- Roteamento: `plataforma/apps/design-system/src/app/router.tsx`, `src/app/AppShell.tsx`, `src/hooks/useRouteSync.ts`
+- Editor/aba Criar: `src/app/CreateTab.tsx`
+- Sub-abas editoriais: `src/features/editorial/EditorialLayout.tsx`
+- Templates/stores: `src/features`, `src/stores`, `src/domain`
 - Tokens: `src/tokens` e `style-dictionary.config.mjs`
 - Exportação: `src/lib/export`
 - IA/editorial: `src/lib/ai`, `src/server/editorial`
 - API/dados/filas: `src/server`, `src/db`, `drizzle`
+- Schema unificado: `src/db/editorial-schema.ts` (`unifiedCreatives`)
+- Migrations: `packages/db/migrations/0032_unified_creatives.{up,down}.sql`
+- SPA nginx: `apps/design-system/nginx.conf`, `apps/design-system/Dockerfile.web`
 - Testes: `tests`, arquivos `*.test.*` e stories
 - Deploy: `plataforma/deploy/deploy-all.ps1`
+
 
 ## 11. Verificação integral de produção em 17/08/2026
 
@@ -126,3 +155,55 @@ de operação orgânica: 51 tabelas em `design.*`, teses doutrinárias semeadas 
 para o Prospector. Quando a API do Design System voltar ao ar, o `DATABASE_URL` deve
 apontar para esse Postgres com `search_path=design,public` — não existe mais um
 Postgres separado para o Design System.
+
+## 13. Integração concluída em 21/08/2026
+
+O design-api passou a apontar para o **banco único** (compose do Prospector, porta
+`127.0.0.1:5433`, role `design_app`, `options=-csearch_path=design,public` — as
+migrations 0000–0004 do Design System estão registradas em `design.design_schema_migrations`).
+A SPA do Design System e o Prospector leem o mesmo Postgres. Novas rotas do design-api:
+
+- `GET /api/publications` — agendamentos do ciclo (scheduled_publications + theses)
+- `GET /api/publications/batch/:batchId` — filtro por lote
+
+A tela **Calendário editorial** da SPA (antes mock) lista os agendamentos reais
+(75 do batch `d15db4a0-...` + 7 baseline) agrupados por canal. O banco `rota_design`
+do host (5432) ficou órfão como referência histórica. Login/sessão: senha única
+`DESIGN_API_PASSWORD` + sessão HMAC (não depende do banco).
+
+Em 21/08/2026 o dashboard "Meus Projetos" foi repovoado com 9 projetos de trabalho
+(3 por status: em andamento, não iniciado, finalizado; formatos post/carrossel/story,
+template IDs do registry da SPA, `user_id` = operator padrão). Os projetos originais
+se perderam na reinstalação de 20/08 — nenhum dump os continha. Os templates do
+Gerador de Criativos (29) são hardcoded no registry da SPA e nunca dependeram do banco;
+o histórico de artes é localStorage do navegador.
+
+## 14. Roteamento URL real e tabela unificada de criativos — 21/08/2026
+
+**Implementado no código / pendente de deploy.**
+
+### Roteamento (Etapa 1)
+
+- `react-router-dom@7` adicionado ao `@plataforma/design-system`.
+- `src/app/router.tsx`: mapa de rotas via `createBrowserRouter`. AppShell é o layout-route pai; EditorialLayout é o layout aninhado para `/teses/*`.
+- `src/app/AppShell.tsx`: reescrito — todos os condicionais de aba substituídos por `<Outlet />`.
+- `src/app/CreateTab.tsx` (novo): lógica da aba Criar extraída do AppShell.
+- `src/features/editorial/EditorialLayout.tsx` (novo): barra de sub-abas com `NavLink` + `<Outlet />` — substitui o `EditorialView` com `useState` local.
+- `src/hooks/useRouteSync.ts` (novo): sincroniza rota ↔ Zustand bidireccionalmente, preservando atalhos de teclado (1-6) e CommandPalette.
+- `src/app/AppHeader.tsx`: botões de aba migrados para `NavLink`; active class determinada pela rota.
+- `src/main.tsx`: montagem migrada de `<App />` para `<RouterProvider router={router} />`.
+- `apps/design-system/nginx.conf` (novo) + `Dockerfile.web` atualizado: SPA fallback `try_files $uri $uri/ /index.html` — sem isso rotas como `/teses/calendario` retornam 404 ao recarregar.
+- Redirecionamentos de compatibilidade: `/dashboard → /` e `/editorial → /teses`.
+
+**Pendente de verificação manual após deploy:** navegação direta por URL, botão voltar do browser, atalhos de teclado, CommandPalette, deep-link para sub-aba, refresh mantendo rota.
+
+### Tabela unificada de criativos (Etapa 2)
+
+- `packages/db/migrations/0032_unified_creatives.up.sql`: cria `unified_creatives`, migra dados de `scheduled_publications` e `content_items`, enriquece com `editorial_plan_items`, cria views `scheduled_publications_compat` e `content_items_compat`.
+- `packages/db/migrations/0032_unified_creatives.down.sql`: rollback (dropa views, trigger e tabela).
+- `src/db/editorial-schema.ts`: definição Drizzle `unifiedCreatives` com FKs para Design System side; `thesis_id` (Prospector) como `uuid` sem FK Drizzle para evitar dependência cruzada de schema.
+
+**Pendente de execução:** `pnpm db:migrate` (ou equivalente) na VPS — a migration não foi aplicada automaticamente nesta sessão.
+
+**Gate de produção:** a Etapa 3 (APIs apontando para `unified_creatives`) não foi implementada — `scheduled_publications` e `content_items` originais continuam sendo a fonte de leitura/escrita das APIs de ambos os apps.
+
