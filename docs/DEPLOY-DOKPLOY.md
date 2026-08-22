@@ -72,7 +72,16 @@ Um push em `main` do repositorio `rota-de-ataque-v2` executa
 3. a imagem recebe label com o SHA completo, e a label e verificada antes do push ao GHCR;
 4. `/opt/rota-deploy/deploy.sh plataforma-v2 <tag>` extrai o artefato para uma release imutavel;
 5. `scripts/vps/activate-release.sh` aplica schema, troca `current`, reinicia frontend/workers PM2
-   e executa as verificacoes de consistencia e saude.
+   e executa as verificacoes de consistencia e saude;
+6. o gate versionado `scripts/vps/verify-cursos-aulas-production.sh` confirma migration, grants da
+   conta de runtime, endpoints autenticados e um unico listener na porta 3000 antes do workflow verde.
+
+O estagio final da imagem exclui `.next/cache`, que serve apenas para compilacao. Na validacao de
+22/08/2026, o run `32588559457` ativou a release `20260822-180155` a partir do SHA completo
+`9f85d6a04e33050dbcb9b8e9fffe7af6014ee0aa`; a imagem final ficou em aproximadamente 394 MB,
+todos os sete processos PM2 apontaram para a release nova e os cinco health checks permaneceram 200.
+O helper remove todo build cache Docker nao utilizado abaixo de 20 GiB livres e novamente depois
+de uma ativacao bem-sucedida; abaixo de 12 GiB, o build nem inicia.
 
 O build nao deve voltar ao runner hospedado padrao: esse caminho excedeu repetidamente o limite
 de memoria da cgroup, mesmo com swap criada no host. Na VPS, heap Node de 8 GiB e suportado pela
@@ -152,7 +161,7 @@ Um `200` isolado nao prova deploy novo: Design API e Prospector verificam o ID d
 |---|---|
 | SSH retorna `Permission denied` ao executar o script | `stat /opt/rota-deploy/deploy.sh`; o workflow deve reinstalar automaticamente a versao do commit em modo `755` |
 | Build V2 morre e logs desaparecem no runner | confirmar que o workflow envia o build para a VPS; nao tentar resolver com swap do runner |
-| Build V2 sem espaco | verificar `/var/lib/docker`; o helper poda cache antigo abaixo de 20 GiB e aborta abaixo de 12 GiB |
+| Build V2 sem espaco | verificar `/var/lib/docker`; o helper poda todo build cache nao utilizado abaixo de 20 GiB e depois do sucesso, e aborta abaixo de 12 GiB |
 | Migration do Design acusa checksum | distinguir LF/CRLF de alteracao real; nunca sobrescrever o ledger manualmente sem comparar o SQL |
 | Migration do Prospector nao avanca | verificar o `docker-compose.dokploy.yml`, project name, `.env`, imagem do container efemero e ledger; falha deve deixar o job vermelho |
 | Design migration recebe `ECONNREFUSED 127.0.0.1:5433` | confirmar `docker port ...-postgres-1`; recriar somente o servico `postgres` pelo compose canonico, preservando o volume |
