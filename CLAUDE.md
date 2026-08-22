@@ -67,9 +67,10 @@ In repositories with `.codegraph/`, use CodeGraph before textual search to locat
 3. Deploy concluído
 
 **Plataforma 2.0** (`rota-de-ataque-v2`):
-1. CI inicia build na própria VPS (nohup — evita OOM no runner) → GHCR
-2. CI faz SSH e executa `/opt/rota-deploy/deploy.sh plataforma`
-3. Dokploy puxa a imagem GHCR e reinicia o container
+1. CI envia um archive do commit exato e inicia o build síncrono na própria VPS (evita OOM no runner)
+2. A VPS publica a imagem identificada pelo SHA no GHCR
+3. `/opt/rota-deploy/deploy.sh plataforma-v2 <tag>` extrai uma release imutável e a ativa via PM2
+4. O application legado do Dokploy/porta 3030 não participa da produção
 
 ## Se o agente fez alterações no código
 
@@ -91,13 +92,14 @@ git push origin main
 
 ```bash
 ssh root@187.127.249.22 '/opt/rota-deploy/deploy.sh <project>'
-# Projetos: design-web, design-api, prospector, gazeta, plataforma, all, status, cleanup
+# Projetos atuais: design-web, design-api, prospector, design-prospector,
+#                  plataforma-v2 <tag>, status, cleanup
 ```
 
 ## Regras
 
 - Merge em `main` dispara CI + deploy automático — sem cliques no Dokploy
-- Nunca adicionar `env_file` no docker-compose.yml (gerenciado pelo Dokploy)
+- No Compose do Prospector, preservar `env_file: .env`: o Dokploy materializa esse arquivo no checkout. Nunca adicionar paths locais ou arquivos de credenciais
 - Manter apenas 1 imagem anterior por projeto na VPS para rollback
 - Para mudanças de infraestrutura, consultar `Docs/DEPLOY-DOKPLOY.md`
 

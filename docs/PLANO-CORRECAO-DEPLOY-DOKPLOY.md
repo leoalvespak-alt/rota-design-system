@@ -1,10 +1,12 @@
 # Plano de Correção — Deploys Dokploy (Rota de Ataque)
 
+> **Documento historico, encerrado e substituido.** Nao use este plano como estado atual nem
+> execute seus comandos. A fonte canonica auditada e `docs/DEPLOY-DOKPLOY.md`; o codigo dos
+> workflows e scripts versionados prevalece em caso de divergencia. Em particular, a Plataforma
+> 2.0 de producao continua em PM2/porta 3000, e o application Dokploy/porta 3030 e legado/inativo.
+>
 > Diagnóstico feito em 20/08/2026, execução iniciada em 20/08.
 > **Atualizado em 20/08/2026** — seções concluídas removidas, só resta o que falta.
->
-> **Este documento é a fonte da verdade da execução.** A IA que executar deve seguir as fases
-> na ordem, respeitar §1 e não improvisar arquitetura.
 
 ---
 

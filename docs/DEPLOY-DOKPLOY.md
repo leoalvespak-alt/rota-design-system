@@ -1,184 +1,153 @@
-﻿# Deploy — Infraestrutura Dokploy (Rota de Ataque)
+# Deploy — GitHub Actions, VPS e Dokploy
 
-> Documento canonico de deploy dos tres sistemas da Rota de Ataque via Dokploy.
-> Estado implementado e verificado em 20/08/2026.
+> Documento canonico de deploy dos projetos Rota de Ataque.
+> Estado auditado na configuracao executavel e na VPS em 22/08/2026.
 
-## Visao geral
+## Arquitetura em producao
 
-Todos os tres projetos sao servidos na mesma VPS (`187.127.249.22`) pelo **Dokploy** (v0.30.2),
-que gerencia build, containers, Traefik (reverso) e healthchecks. O nginx externo funciona
-como edge (portas 80/443), mantendo todos os certificados TLS existentes.
+Os tres projetos usam a mesma VPS, mas nao usam o mesmo mecanismo de ativacao.
 
-### Mapa de portas
+| Projeto | Repositorio | Build | Ativacao em producao |
+|---|---|---|---|
+| Design System (web + API) | `leoalvespak-alt/rota-de-ataque-plataforma` | GitHub Actions, imagens no GHCR | web estatico no nginx; API em Docker via systemd |
+| Prospector | `leoalvespak-alt/rota-de-ataque-plataforma` | GitHub Actions, imagens no GHCR | Compose gerenciado pelo Dokploy |
+| Plataforma 2.0 | `leoalvespak-alt/rota-de-ataque-v2` | na VPS, iniciado pelo GitHub Actions; imagem no GHCR | release extraida da imagem e processos PM2 |
 
-| Porta | Quem ocupa | Estado |
-|---|---|---|
-| 80 / 443 | **nginx** (edge, todos os dominios) | ativo |
-| 3000 | `rota-frontend` (Plataforma 2.0, PM2) | ativo via PM2 |
-| 3001 | `deriva-pwa` | ativo via PM2 |
-| 3002 | `rota-design-api` | ativo via PM2 |
-| **3010** | **Prospector web (Dokploy)** | compose no Dokploy |
-| **3020** | **Gazeta (Dokploy)** | app no Dokploy |
-| **3030** | **Plataforma 2.0 (Dokploy, skeleton)** | app no Dokploy (nao em producao) |
-| **3100** | **painel Dokploy** | movido da 3000 |
-| 8080 / 8443 | Traefik do Dokploy | reverso interno |
-| 8081 / 8083 / 8092 | gateways legados (notes, study-room, editorial-api) | ativos via PM2 |
+A Plataforma 2.0 de producao **nao** roda no application legado do Dokploy. O nginx aponta
+`app.rotadeataque.com.br` para o frontend PM2 em `127.0.0.1:3000`. O recurso Dokploy na
+porta 3030 e apenas legado/inativo e nao deve ser acionado pelo CI.
 
----
+### Portas relevantes
 
-## Acesso ao Dokploy
-
-- **URL:** http://187.127.249.22:3100
-- **Conta:** admin (criada pelo proprietario)
-- **API key:** em `credenciais_dokploy.txt` — usar sempre via API (`x-api-key`), nunca senha de admin
-- **SSH para emergencias:** ssh root@187.127.249.22 (chave em ~/.ssh/id_rsa)
-
----
-
-## Prospector — Tipo: Compose
-
-- **Repo:** `leoalvespak-alt/rota-de-ataque-plataforma`
-- **Branch:** `main`
-- **Compose Path:** `docker/docker-compose.dokploy.yml`
-- **Autodeploy:** desligado (deploy manual apos GitHub Actions publicar imagens)
-- **Porta publicada:** `127.0.0.1:3010 -> 3000` (acesso via nginx em `design.rotadeataque.com.br/prospector`)
-
-### Configuracao do Dokploy (via API)
-
-| Campo | Valor |
+| Porta | Servico |
 |---|---|
-| `composeId` | `PXQCDj9zwHR772nHRE-pu` |
-| `branch` | `main` |
-| `composePath` | `docker/docker-compose.dokploy.yml` |
-| `autoDeploy` | `false` |
+| 80 / 443 | nginx, edge TLS dos dominios |
+| 3000 | Plataforma 2.0, PM2 (`rota-frontend`) |
+| 3002 | Design API, systemd + Docker |
+| 3010 | Prospector web, Dokploy Compose |
+| 3020 | Gazeta, Dokploy Application (fora do escopo destes tres projetos) |
+| 3030 | application legado/inativo da Plataforma 2.0 |
+| 3100 | painel/API local do Dokploy |
+| 8080 / 8443 | Traefik interno do Dokploy |
 
-### Variaveis de ambiente
+## Fluxo automatico
 
-Preencher no painel do Dokploy (aba Environment) — **nunca usar env_file no docker-compose.yml**,
-pois o Dokploy apaga a pasta antes de cada deploy e injeta as variaveis diretamente.
+### Design System e Prospector
 
-Variaveis obrigatorias confirmadas:
+Um push em `main` do repositorio `rota-de-ataque-plataforma` executa
+`.github/workflows/deploy.yml`:
+
+1. builda e publica quatro imagens (`rota-design-web`, `rota-design-api`,
+   `prospector-platform-web` e `prospector-platform-worker`);
+2. abre uma unica sessao SSH com keepalive;
+3. executa `/opt/rota-deploy/deploy.sh design-prospector` sob lock global;
+4. aplica as migrations antes de substituir os processos;
+5. exige que a API/containers estejam usando as imagens novas e que os health checks retornem 200.
+
+Falha de migration, chamada do Dokploy, troca de imagem ou health check encerra o workflow com
+erro. Nao existe mais o comportamento de registrar `WARN` e deixar o deploy verde.
+
+As migrations do Design usam checksum canonico com fim de linha LF. Um checksum historico que
+difere somente por LF/CRLF e reconciliado uma vez; qualquer mudanca real no SQL aplicado continua
+bloqueando o deploy. As migrations do Prospector sao executadas pelo profile `tools` no diretorio
+materializado pelo Dokploy em `/etc/dokploy/compose/.../code/docker`.
+
+### Plataforma 2.0
+
+Um push em `main` do repositorio `rota-de-ataque-v2` executa
+`.github/workflows/dokploy-ci.yml`:
+
+1. o runner envia um `git archive` do commit exato para `/srv/rota-ci/`;
+2. a VPS verifica espaco e builda a imagem com memoria + swap locais, fora do limite de cgroup do runner;
+3. a imagem recebe label com o SHA completo, e a label e verificada antes do push ao GHCR;
+4. `/opt/rota-deploy/deploy.sh plataforma-v2 <tag>` extrai o artefato para uma release imutavel;
+5. `scripts/vps/activate-release.sh` aplica schema, troca `current`, reinicia frontend/workers PM2
+   e executa as verificacoes de consistencia e saude.
+
+O build nao deve voltar ao runner hospedado padrao: esse caminho excedeu repetidamente o limite
+de memoria da cgroup, mesmo com swap criada no host. Na VPS, heap Node de 8 GiB e suportado pela
+RAM + swap e ja superou a fase de compilacao que falhava com 4 GiB.
+
+## Script central da VPS
+
+O arquivo versionado e `plataforma/deploy/rota-deploy.sh`; a copia operacional fica em
+`/opt/rota-deploy/deploy.sh`, modo `755`. Os deploys compartilham
+`/run/lock/rota-deploy.lock`, evitando builds/ativacoes concorrentes entre repositorios.
+
+Configuracao sensivel nao fica no script. Ela e lida de `/etc/rota-deploy.env`, que deve pertencer
+a `root:root`, modo `600`, e conter somente as variaveis necessarias:
+
+```text
+DOKPLOY_API_KEY=...
+DESIGN_DATABASE_URL=...
 ```
-APP_URL=https://design.rotadeataque.com.br/prospector
-NEXTAUTH_URL=https://design.rotadeataque.com.br/prospector
-NEXT_PUBLIC_BASE_PATH=/prospector
-WORKERS_DEFAULT_ENABLED=false
-```
 
-### Banco de dados
+Nunca imprimir esse arquivo, copiar seus valores para logs, Docs ou Git, nem passar segredos na
+linha de comando. O token temporario do GHCR usado pela Plataforma 2.0 chega ao helper pela entrada
+padrao e usa um `DOCKER_CONFIG` temporario fora do contexto de build.
 
-O compose do Prospector inclui seu proprio Postgres (`pgvector/pgvector:pg16`) e Redis.
-A extensao `pgvector` e obrigatoria — a imagem `postgres:18` do recurso avulso do Dokploy nao a tem.
-
-### Restore do banco
-
-Backups em `/opt/prospector-platform/shared/backups/` na VPS.
+Comandos operacionais:
 
 ```bash
-# 1. Identificar o container do postgres do Compose
-docker ps | grep prospector
-
-# 2. Restaurar o dump
-cat /opt/prospector-platform/shared/backups/pre-migration-20260818043423-83a41fa7.dump \
-  | docker exec -i CONTAINER_POSTGRES \
-    pg_restore -U prospector -d prospector -1 --no-owner --role=prospector
+/opt/rota-deploy/deploy.sh design-prospector
+/opt/rota-deploy/deploy.sh design-web
+/opt/rota-deploy/deploy.sh design-api
+/opt/rota-deploy/deploy.sh prospector
+/opt/rota-deploy/deploy.sh plataforma-v2 <tag-imutavel>
+/opt/rota-deploy/deploy.sh status
+/opt/rota-deploy/deploy.sh cleanup
 ```
 
----
+`status` inclui a Gazeta para observabilidade manual. Os deploys dos tres projetos nao dependem
+da saude da Gazeta; cada fluxo valida apenas os servicos que acabou de alterar.
 
-## Gazeta — Tipo: Application
+## Contrato do Compose do Prospector
 
-- **Repo:** `leoalvespak-alt/gazetacon` (privado)
-- **Branch:** `master`
-- **Build Type:** Dockerfile
-- **Dockerfile:** `Dockerfile` (nao vazio)
-- **Docker Context Path:** vazio
-- **Autodeploy:** ativo (push no master dispara rebuild)
-- **Porta publicada:** `127.0.0.1:3020 -> 3000` (acesso via nginx em `gazeta.rotadeataque.com.br`)
+O Compose canonico e `docker/docker-compose.dokploy.yml`. O Dokploy materializa as variaveis do
+painel no arquivo `.env` do checkout e, por isso, o servico web usa `env_file: .env`. Essa entrada
+e intencional e nao deve ser removida. Nao adicionar caminhos de env locais, arquivos de credenciais
+ou valores sensiveis ao repositorio.
 
-### Configuracao do Dokploy (via API)
+O Postgres `pgvector/pgvector:pg16` e o Redis pertencem ao proprio Compose. O Design API acessa o
+schema `design` nesse Postgres por configuracao externa; nenhuma URL ou senha de banco e canonica
+em Markdown.
 
-| Campo | Valor |
-|---|---|
-| `applicationId` | `AJcua9f7P4PYRWRkO-72W` |
-| `dockerfile` | `Dockerfile` |
-| `dockerContextPath` | (vazio) |
-| `buildType` | `dockerfile` |
+## Deploy e verificacao
 
-### Variaveis de ambiente
+Nao e necessario PR para deploy. Depois de validar o repositorio correto:
 
-Preencher na aba Environment do Dokploy. Variavel obrigatoria:
-```
-NEXT_PUBLIC_SITE_URL=https://gazeta.rotadeataque.com.br
+```bash
+git remote -v
+git add <arquivos-do-ajuste>
+git commit -m "fix: descricao"
+git push origin main
 ```
 
-### nginx vhost
+Monitorar:
 
-`/etc/nginx/sites-available/gazeta.rotadeataque.com.br` — proxy para `127.0.0.1:3020`.
+- Design System/Prospector: `https://github.com/leoalvespak-alt/rota-de-ataque-plataforma/actions`
+- Plataforma 2.0: `https://github.com/leoalvespak-alt/rota-de-ataque-v2/actions`
 
----
-
-## Plataforma 2.0 — Tipo: Application (skeleton, NAO em producao)
-
-- **Repo:** `leoalvespak-alt/rota-de-ataque-v2`
-- **Branch:** `codex/auth-proxy-safe-vps`
-- **Build Type:** Dockerfile
-- **Dockerfile:** `Dockerfile`
-- **Autodeploy:** desligado
-- **Porta publicada:** `127.0.0.1:3030 -> 3000`
-
-### Configuracao do Dokploy (via API)
-
-| Campo | Valor |
-|---|---|
-| `applicationId` | `kiMKbGqJOo5cSXbMcruMv` |
-| `dockerfile` | `Dockerfile` |
-| `buildType` | `dockerfile` |
-
-### restricoes
-
-- **PROIBIDO** apontar qualquer dominio de producao (app., admin., fox., etc.) para este app
-- **PROIBIDO** parar o PM2 ou mexer no banco `rota_ataque`
-- Para testes, usar `dev-v2.rotadeataque.com.br` (se configurado)
-
----
-
-## Design System
-
-O Design System **nao esta no Dokploy** nesta rodada. Ele e servido pelo nginx estatico
-em `/var/www/design-rota-ataque`, acessivel em `design.rotadeataque.com.br`. O codigo fonte
-migrou para `plataforma/apps/design-system/` no repo `rota-de-ataque-plataforma`.
-
----
-
-## CI/CD
-
-| Projeto | Workflow | Trigger |
-|---|---|---|
-| Prospector | `.github/workflows/deploy.yml` em `rota-de-ataque-plataforma` | push em `main` |
-| Gazeta | webhook do Dokploy (GitHub App) | push em `master` |
-| Plataforma 2.0 | (nenhum — deploy manual) | manual |
-
----
-
-## Monitoramento
-
-No painel do Dokploy (http://187.127.249.22:3100), cada projeto tem as abas:
-- **Deployments** — historico e logs de cada deploy
-- **Logs** — logs em tempo real dos containers
-- **Containers** — status de saude de cada container
-
-Logs de deploy na VPS: `/etc/dokploy/logs/<appName>/`
-Codigo clonado pelo Dokploy: `/etc/dokploy/compose/<appName>/code/`
-
----
+Ao final, confirmar o SHA/release ativado e os health checks, nao apenas o status verde do job.
+Um `200` isolado nao prova deploy novo: Design API e Prospector verificam o ID da imagem; Plataforma
+2.0 verifica a label do SHA, o `current` e o cwd dos processos PM2.
 
 ## Troubleshooting
 
-| Problema | Causa | Solucao |
-|---|---|---|
-| env_file not found no Compose | O Dokploy apaga a pasta antes do deploy | Remover env_file do docker-compose.yml; usar aba Environment |
-| Build cancelado apos ~14 min | Timeout da VPS com CPU 100% | Aguardar e tentar de novo; builds longos sao normais na primeira vez |
-| Container sem log na aba Logs | Container ainda nao subiu | Esperar o deploy concluir; verificar aba Deployments |
-| deploy automatico dispara antes da imagem pronta | autoDeploy ligado antes do GH Actions terminar | Manter autoDeploy desligado; disparar deploy manual apos imagem publicada |
-| Caractere de controle em arquivo | Here-string interpolado do PowerShell | Usar here-string literal (@'...'@), heredoc bash (<<'EOF'), ou ferramentas de escrita do agente |
+| Sintoma | Verificacao/acao |
+|---|---|
+| SSH retorna `Permission denied` ao executar o script | `stat /opt/rota-deploy/deploy.sh`; restaurar modo `755` |
+| Build V2 morre e logs desaparecem no runner | confirmar que o workflow envia o build para a VPS; nao tentar resolver com swap do runner |
+| Build V2 sem espaco | verificar `/var/lib/docker`; o helper poda cache antigo abaixo de 20 GiB e aborta abaixo de 12 GiB |
+| Migration do Design acusa checksum | distinguir LF/CRLF de alteracao real; nunca sobrescrever o ledger manualmente sem comparar o SQL |
+| Migration do Prospector nao avanca | verificar o compose real sob `/etc/dokploy/compose/` e executar o profile `tools`; falha deve deixar o job vermelho |
+| Prospector continua na imagem anterior | verificar os IDs dos containers web e worker e os logs da chamada `compose.deploy` |
+| Plataforma 2.0 retorna 502 | conferir `readlink -f /srv/rota-ataque/frontend/current`, `pm2 status` e porta 3000 |
+| API do Design retorna 502 | conferir `systemctl status rota-design-api.service` e o container `rota-design-api` |
+
+## Limitacoes e gates
+
+- Migrations devem continuar compativeis com a versao anterior durante a janela entre migration e troca de processo.
+- O build da Plataforma 2.0 compartilha recursos com a producao; o lock evita concorrencia, e os gates de disco
+  evitam iniciar build sem margem minima, mas o consumo de memoria/swap deve ser acompanhado nos proximos deploys.
+- O application legado da Plataforma 2.0 no Dokploy nao e fonte da verdade e deve permanecer fora do fluxo automatico.

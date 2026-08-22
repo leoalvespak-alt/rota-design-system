@@ -18,13 +18,16 @@ Push direto para `main` e suficiente em todos os repositorios — sem PR necessa
 | Plataforma 2.0 | `leoalvespak-alt/rota-de-ataque-v2` | `git push origin main` |
 | Gazeta | repo Gazeta | `git push origin main` |
 
-Apos o push, GitHub Actions builda a imagem Docker, sobe para GHCR e faz SSH deploy na VPS — tudo automatico, sem cliques no Dokploy.
+Apos o push, o fluxo e automatico. Design System/Prospector buildam no GitHub Actions e usam
+Dokploy apenas para o Compose do Prospector. A Plataforma 2.0 builda na VPS, publica no GHCR e
+ativa uma release imutavel via PM2; o application legado do Dokploy nao participa da producao.
 
 - Design System/Prospector: `https://github.com/leoalvespak-alt/rota-de-ataque-plataforma/actions`
 - Plataforma 2.0: `https://github.com/leoalvespak-alt/rota-de-ataque-v2/actions`
 
 Via SSH (reimplantar sem novo codigo): `ssh root@187.127.249.22 '/opt/rota-deploy/deploy.sh <project>'`
-Projetos: design-web, design-api, prospector, gazeta, plataforma, all, status, cleanup.
+Projetos atuais: design-web, design-api, prospector, design-prospector,
+plataforma-v2 <tag>, status, cleanup.
 
 # File writing safety
 

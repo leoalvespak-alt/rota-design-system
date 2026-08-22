@@ -49,18 +49,19 @@ git push origin main
 
 O que acontece apos o merge/push:
 - **Design System / Prospector**: CI builda imagem Docker → GHCR → SSH deploy na VPS
-- **Plataforma 2.0**: CI inicia build na propria VPS (evita OOM no runner) → GHCR → Dokploy pull
+- **Plataforma 2.0**: CI envia o commit para a VPS, builda fora do limite do runner, publica no GHCR e ativa uma release imutavel via PM2 (nao via Dokploy)
 
 ### Deploy manual via SSH (reimplantar sem novo codigo)
 
 ```bash
 ssh root@187.127.249.22 '/opt/rota-deploy/deploy.sh <project>'
-# Projetos: design-web, design-api, prospector, gazeta, plataforma, all, status, cleanup
+# Projetos atuais: design-web, design-api, prospector, design-prospector,
+#                 plataforma-v2 <tag>, status, cleanup
 ```
 
 Regras:
 - Push para `main` dispara CI + deploy automatico — nao precisa clicar em nada no Dokploy
-- Nunca adicionar `env_file` no docker-compose.yml (compose gerenciado pelo Dokploy)
+- No Compose do Prospector, preservar `env_file: .env`: o Dokploy materializa esse arquivo no checkout. Nunca adicionar paths locais ou arquivos de credenciais
 - O script de deploy da VPS cuida de: pull de imagem, restart, migrations, health check, limpeza de imagens antigas
 - Manter apenas 1 imagem anterior por projeto na VPS para rollback
 
