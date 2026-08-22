@@ -1,11 +1,13 @@
 ﻿# Documentacao canonica
 
+> ⚠️ **Regra para agentes de IA**: sempre commitar diretamente em `main` — nunca criar branches nem PRs. A proteção de branch foi removida. Push em `main` dispara CI/CD e deploy automático.
+
 Documentacao atualizada e verificada em 20/08/2026:
 
 - [Prospector](PROSPECTOR.md): arquitetura, APIs, workers, dados, fluxos, deploy e estado real de producao.
 - [Design System](DESIGN-SYSTEM.md): editor, templates, estado, IA server-side, API segura, exportacao e deploy.
 - [Arquitetura unificada](ARQUITETURA-UNIFICADA.md): fronteiras, Creative Bridge, jornada conjunta, seguranca e operacao.
-- [Deploy Dokploy](DEPLOY-DOKPLOY.md): infraestrutura de deploy dos tres projetos via Dokploy, mapa de portas, procedimentos de restore e troubleshooting.
+- [Deploy Dokploy](DEPLOY-DOKPLOY.md): infraestrutura de deploy de todos os projetos (Design System, Prospector, Gazeta, Plataforma 2.0) via Dokploy + GitHub Actions + SSH, mapa de portas, scripts de deploy automatico e troubleshooting.
 
 Documentacao de marca e crescimento:
 
