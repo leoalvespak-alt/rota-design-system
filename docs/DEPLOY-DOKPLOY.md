@@ -40,17 +40,27 @@ Um push em `main` do repositorio `rota-de-ataque-plataforma` executa
 1. builda e publica quatro imagens (`rota-design-web`, `rota-design-api`,
    `prospector-platform-web` e `prospector-platform-worker`);
 2. abre uma unica sessao SSH com keepalive;
-3. executa `/opt/rota-deploy/deploy.sh design-prospector` sob lock global;
-4. aplica as migrations antes de substituir os processos;
-5. exige que a API/containers estejam usando as imagens novas e que os health checks retornem 200.
+3. envia `deploy/rota-deploy.sh` como candidato, valida a sintaxe, preserva a copia
+   anterior e instala a versao do commit como `root:root`, modo `755`;
+4. executa `/opt/rota-deploy/deploy.sh design-prospector <tag>` sob lock global;
+5. aplica as migrations antes de substituir os processos;
+6. exige que a API/containers estejam usando as imagens novas e que os health checks retornem 200.
 
 Falha de migration, chamada do Dokploy, troca de imagem ou health check encerra o workflow com
 erro. Nao existe mais o comportamento de registrar `WARN` e deixar o deploy verde.
 
 As migrations do Design usam checksum canonico com fim de linha LF. Um checksum historico que
 difere somente por LF/CRLF e reconciliado uma vez; qualquer mudanca real no SQL aplicado continua
-bloqueando o deploy. As migrations do Prospector sao executadas pelo profile `tools` no diretorio
-materializado pelo Dokploy em `/etc/dokploy/compose/.../code/docker`.
+bloqueando o deploy. As migrations do Prospector sao executadas exclusivamente pelo
+`docker/docker-compose.dokploy.yml` materializado pelo Dokploy, com o project name de producao,
+profile `tools`, `--no-deps`, `.env` e a imagem imutavel ja puxada. Isso impede que o gate de banco
+recrie Postgres/Redis ou use acidentalmente o compose local com blocos `build:`.
+
+Na reconciliacao de 22/08/2026, a tabela `design.unified_creatives` ja existia com a estrutura
+esperada, embora a migration 0032 estivesse ausente do ledger do Design. A entrada 0032 foi
+registrada somente depois de comparar tabela, indices, views, funcao e trigger; em seguida a 0033
+foi aplicada normalmente. No Prospector, as migrations compartilhadas 0032/0033 resolvem de forma
+explicita os schemas `design` e `public`, preservando o banco Prospector-only.
 
 ### Plataforma 2.0
 
@@ -79,8 +89,12 @@ a `root:root`, modo `600`, e conter somente as variaveis necessarias:
 
 ```text
 DOKPLOY_API_KEY=...
-DESIGN_DATABASE_URL=...
+DESIGN_MIGRATION_DATABASE_URL=...
 ```
+
+`DESIGN_MIGRATION_DATABASE_URL` usa o owner do schema apenas no container efemero de migration.
+A API continua usando a conta restrita definida no unit do systemd; nao conceder ownership ou DDL
+a conta de runtime.
 
 Nunca imprimir esse arquivo, copiar seus valores para logs, Docs ou Git, nem passar segredos na
 linha de comando. O token temporario do GHCR usado pela Plataforma 2.0 chega ao helper pela entrada
@@ -104,9 +118,9 @@ da saude da Gazeta; cada fluxo valida apenas os servicos que acabou de alterar.
 ## Contrato do Compose do Prospector
 
 O Compose canonico e `docker/docker-compose.dokploy.yml`. O Dokploy materializa as variaveis do
-painel no arquivo `.env` do checkout e, por isso, o servico web usa `env_file: .env`. Essa entrada
-e intencional e nao deve ser removida. Nao adicionar caminhos de env locais, arquivos de credenciais
-ou valores sensiveis ao repositorio.
+painel no arquivo `.env` do checkout e, por isso, os servicos `web` e `migrate` usam
+`env_file: .env`. Essas entradas sao intencionais e nao devem ser removidas. Nao adicionar caminhos
+de env locais, arquivos de credenciais ou valores sensiveis ao repositorio.
 
 O Postgres `pgvector/pgvector:pg16` e o Redis pertencem ao proprio Compose. O Design API acessa o
 schema `design` nesse Postgres por configuracao externa; nenhuma URL ou senha de banco e canonica
@@ -136,11 +150,12 @@ Um `200` isolado nao prova deploy novo: Design API e Prospector verificam o ID d
 
 | Sintoma | Verificacao/acao |
 |---|---|
-| SSH retorna `Permission denied` ao executar o script | `stat /opt/rota-deploy/deploy.sh`; restaurar modo `755` |
+| SSH retorna `Permission denied` ao executar o script | `stat /opt/rota-deploy/deploy.sh`; o workflow deve reinstalar automaticamente a versao do commit em modo `755` |
 | Build V2 morre e logs desaparecem no runner | confirmar que o workflow envia o build para a VPS; nao tentar resolver com swap do runner |
 | Build V2 sem espaco | verificar `/var/lib/docker`; o helper poda cache antigo abaixo de 20 GiB e aborta abaixo de 12 GiB |
 | Migration do Design acusa checksum | distinguir LF/CRLF de alteracao real; nunca sobrescrever o ledger manualmente sem comparar o SQL |
-| Migration do Prospector nao avanca | verificar o compose real sob `/etc/dokploy/compose/` e executar o profile `tools`; falha deve deixar o job vermelho |
+| Migration do Prospector nao avanca | verificar o `docker-compose.dokploy.yml`, project name, `.env`, imagem do container efemero e ledger; falha deve deixar o job vermelho |
+| Design migration recebe `ECONNREFUSED 127.0.0.1:5433` | confirmar `docker port ...-postgres-1`; recriar somente o servico `postgres` pelo compose canonico, preservando o volume |
 | Prospector continua na imagem anterior | verificar os IDs dos containers web e worker e os logs da chamada `compose.deploy` |
 | Plataforma 2.0 retorna 502 | conferir `readlink -f /srv/rota-ataque/frontend/current`, `pm2 status` e porta 3000 |
 | API do Design retorna 502 | conferir `systemctl status rota-design-api.service` e o container `rota-design-api` |
